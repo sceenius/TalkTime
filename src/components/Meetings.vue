@@ -164,6 +164,7 @@
     <md-content class="md-scrollbar">
       <ul>
         <li
+          v-if="person.status.substring(2) !== 'invisible'"
           v-for="(person, index) in attendees"
           :key="index"
           @click="complete(person);"
@@ -252,8 +253,8 @@ export default {
     attendees: [
       { name: "standing by...", status: "0 standing_by", talk_time: 0 },
       { name: "joshua", status: "1 waiting", talk_time: 0 },
-      { name: "klaus", status: "4 waiting", talk_time: 0 },
-      { name: "sam", status: "4 waiting", talk_time: 0 },
+      { name: "klaus", status: "1 waiting", talk_time: 0 },
+      { name: "sam", status: "1 waiting", talk_time: 0 },
       { name: "tammy", status: "4 listening", talk_time: 0 },
       { name: "colin", status: "4 listening", talk_time: 0 },
       { name: "heiner", status: "4 listening", talk_time: 0 },
@@ -328,7 +329,7 @@ export default {
       );
     },
     complete: function(person) {
-      if (person.status === "0 standing_by") {
+      if (person.status.substring(2) === "standing_by") {
         person.status = "6 invisible";
       } else {
         person.status = "5 completing";
@@ -336,11 +337,21 @@ export default {
       this.attendees.sort(
         (a, b) => (a.status > b.status) - (a.status < b.status)
       );
-      console.log(this.attendees);
+      //console.log(this.attendees);
+
+      // CASE: next person is waiting to be called
       if (this.attendees[0].status.substring(2) === "waiting") {
         this.attendees[0].status = "1 talking";
+
+        // CASE: nobody is waiting to be called, put standing_by back
       } else {
-        // move standing_by to top
+        this.attendees.forEach((person, index, arr) => {
+          //console.log(person);
+          if (person.status.substring(2) === "invisible") {
+            arr[index].status = "0 standing_by";
+            arr.sort((a, b) => (a.status > b.status) - (a.status < b.status));
+          }
+        });
       }
     },
     appoint: function(person) {
