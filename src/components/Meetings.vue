@@ -6,7 +6,7 @@
       ----------------------------------------------------------------------
     -->
     <md-snackbar
-      :md-duration="4000"
+      :md-duration="1000"
       :md-active.sync="showSnackBar"
       md-persistent
     >
@@ -188,38 +188,36 @@
         </li>
       </ul>
 
-      <md-bottom-bar style="" md-active-item="action">
-        <md-bottom-bar-item
-          id="raise_hand"
-          :disabled="status === 'not started' || status === 'ended'"
+      <div class="bottom-bar">
+        <md-button
           @click="raise_hand(attendees[1]);"
-          md-label="Raise Hand"
-          md-icon="pan_tool"
-        ></md-bottom-bar-item>
-        <md-bottom-bar-item
-          id="reject"
           :disabled="status === 'not started' || status === 'ended'"
+          class="bar-button"
+          ><md-icon>pan_tool</md-icon>
+          <div>RAISE HAND</div></md-button
+        >
+        <md-button
           @click="interject(attendees[1]);"
-          md-label="Interject"
-          md-icon="warning"
-        ></md-bottom-bar-item>
-      </md-bottom-bar>
-      <md-bottom-bar style="right:0px;" md-active-item="none">
-        <md-bottom-bar-item
-          :md-active="status !== 'not started' && status !== 'ended'"
           :disabled="status === 'not started' || status === 'ended'"
-          @click="on_topic();"
-          md-label="On Topic"
-          md-icon="mood"
-        ></md-bottom-bar-item>
-        <md-bottom-bar-item
-          :md-active="status !== 'not started' && status !== 'ended'"
+          class="bar-button"
+          ><md-icon>warning</md-icon>
+          <div>INTERJECT</div></md-button
+        >
+        <md-button
+          @click="interject(attendees[1]);"
           :disabled="status === 'not started' || status === 'ended'"
-          @click="off_topic();"
-          md-label="Off Topic"
-          md-icon="mood_bad"
-        ></md-bottom-bar-item>
-      </md-bottom-bar>
+          class="bar-button"
+          ><md-icon>mood</md-icon>
+          <div>ON TOPIC</div></md-button
+        >
+        <md-button
+          @click="interject(attendees[1]);"
+          :disabled="status === 'not started' || status === 'ended'"
+          class="bar-button"
+          ><md-icon>mood_bad</md-icon>
+          <div>OFF TOPIC</div></md-button
+        >
+      </div>
     </md-content>
   </div>
   <!-- END page-container md-layout-column -->
@@ -255,7 +253,8 @@ export default {
     icon: {
       talking: "record_voice_over",
       waiting: "pan_tool",
-      listening: "hearing"
+      listening: "hearing",
+      interjecting: "warning"
     },
     colors: [
       "#AAE0FA",
@@ -306,6 +305,9 @@ export default {
       this.snack = "You have raised your hand.";
       this.showSnackBar = true;
       console.log(this.is_active);
+      this.attendees.sort(
+        (a, b) => parseFloat(a.status) > parseFloat(b.status)
+      );
     },
     appoint: function(person) {
       person.status = "talking";
@@ -378,42 +380,6 @@ span.md-title {
   margin: 0 !important;
 }
 
-.md-bottom-bar {
-  position: absolute;
-  bottom: 0px;
-  width: 50%;
-}
-
-.md-bottom-bar .md-icon {
-  color: white !important;
-  font-size: 3em !important;
-  margin: 10px !important;
-}
-
-.md-bottom-bar-item {
-  color: white !important;
-  background: black !important;
-  border: 1px solid gray;
-  height: 80px !important;
-}
-.md-bottom-bar-label {
-  font-size: 1em;
-}
-
-.md-bottom-bar-item:disabled {
-  background-color: #aaa !important;
-  border: 1px solid white;
-}
-
-.md-bottom-bar-item:disabled .md-icon,
-.md-bottom-bar-item:disabled .md-bottom-bar-label {
-  color: white !important;
-}
-
-.md-active .md-icon,
-.md-active {
-  color: #2ccd70 !important;
-}
 .md-chip {
   background-color: rgba(255, 255, 255, 0.4) !important;
   color: #fff !important;
@@ -443,5 +409,36 @@ span.md-title {
 .md-card-menu {
   margin: 15px 0px 0 -80px !important;
   width: 140px !important;
+}
+
+.md-button.bar-button {
+  background-color: #404040 !important;
+  border: 1px solid white;
+  color: white !important;
+  height: 80px;
+  width: 25%;
+  margin: 0px;
+}
+
+.md-button div {
+  margin: 0 0 -10px 0;
+}
+
+.bar-button .md-icon {
+  color: white !important;
+  font-size: 3em !important;
+  margin: -25px 0 10px 0;
+}
+
+.bottom-bar {
+  position: absolute;
+  bottom: 0px;
+  width: 100%;
+}
+
+.bar-button:disabled {
+  background-color: #ccc !important;
+  border: 1px solid white;
+  cursor: not-allowed;
 }
 </style>
