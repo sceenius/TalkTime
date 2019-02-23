@@ -63,14 +63,14 @@
       -->
       <!-- Show the title and navigation path here -->
       <!-- img src="https://diglife.com/brand/logo_primary.svg" / -->
-      <span class="md-title">TALK TIME</span>
+      <span class="md-title"> <md-icon>timelapse</md-icon> TALK TIME</span>
       <md-chip
         v-if="status == 'on air'"
         style="background-color: #e64d3d !important;"
         >{{ status }}</md-chip
       >
       <md-chip
-        v-if="status == 'not started'"
+        v-else
         style="background-color: rgba(255, 255, 255, 0.4) !important;"
         >{{ status }}</md-chip
       >
@@ -166,40 +166,55 @@
           :key="index"
           v-bind:style="[{ backgroundColor: colors[index] }]"
         >
-          <md-icon v-if="index == 0">record_voice_over</md-icon>
-          <md-icon v-if="index > 0">pan_tool</md-icon> {{ person }}
-          <md-menu style="padding: 10px; cursor: pointer;">
+          <md-icon>{{ icon[person.status] }}</md-icon>
+          {{ person.name }}
+          <md-menu
+            v-if="person.status !== 'talking'"
+            style="padding: 10px; cursor: pointer;"
+          >
             <md-icon md-menu-trigger>more_vert</md-icon>
 
             <md-menu-content class="md-card-menu">
-              <md-menu-item @click="withdraw();">
+              <md-menu-item @click="withdraw(person);">
                 <md-icon>cancel</md-icon>
                 <span>Withdraw</span>
+              </md-menu-item>
+              <md-menu-item @click="appoint(person);">
+                <md-icon>record_voice_over</md-icon>
+                <span>Appoint</span>
               </md-menu-item>
             </md-menu-content>
           </md-menu>
         </li>
       </ul>
 
-      <md-bottom-bar style="">
+      <md-bottom-bar style="" md-active-item="action">
         <md-bottom-bar-item
-          @click="raise_hand();"
+          id="raise_hand"
+          :disabled="status === 'not started' || status === 'ended'"
+          @click="raise_hand(attendees[1]);"
           md-label="Raise Hand"
           md-icon="pan_tool"
         ></md-bottom-bar-item>
         <md-bottom-bar-item
-          @click="interject();"
+          id="reject"
+          :disabled="status === 'not started' || status === 'ended'"
+          @click="interject(attendees[1]);"
           md-label="Interject"
           md-icon="warning"
         ></md-bottom-bar-item>
       </md-bottom-bar>
-      <md-bottom-bar style="right:0px;">
+      <md-bottom-bar style="right:0px;" md-active-item="none">
         <md-bottom-bar-item
+          :md-active="status !== 'not started' && status !== 'ended'"
+          :disabled="status === 'not started' || status === 'ended'"
           @click="on_topic();"
           md-label="On Topic"
           md-icon="mood"
         ></md-bottom-bar-item>
         <md-bottom-bar-item
+          :md-active="status !== 'not started' && status !== 'ended'"
+          :disabled="status === 'not started' || status === 'ended'"
           @click="off_topic();"
           md-label="Off Topic"
           md-icon="mood_bad"
@@ -226,16 +241,22 @@ export default {
     power: false,
     snack: "",
     status: "not started",
+    action: "none",
     topic: "",
     attendees: [
-      "Joshua",
-      "Klaus",
-      "Sam",
-      "Tammy",
-      "Jazwinder",
-      "Heiner",
-      "Heidi"
+      { name: "joshua", status: "talking", talk_time: 0 },
+      { name: "klaus", status: "listening", talk_time: 0 },
+      { name: "sam", status: "listening", talk_time: 0 },
+      { name: "tammy", status: "listening", talk_time: 0 },
+      { name: "jazwinder", status: "listening", talk_time: 0 },
+      { name: "heiner", status: "listening", talk_time: 0 },
+      { name: "heidi", status: "listening", talk_time: 0 }
     ],
+    icon: {
+      talking: "record_voice_over",
+      waiting: "pan_tool",
+      listening: "hearing"
+    },
     colors: [
       "#AAE0FA",
       "#D8DF20",
@@ -254,20 +275,62 @@ export default {
   ///////////////////////////////////////////////////////////////////////////////
   //  CREATED - https://vuejs.org/v2/guide/instance.html
   ///////////////////////////////////////////////////////////////////////////////
-  created: function() {},
+  mounted: function() {},
+
+  computed: {
+    is_active: function() {
+      return (
+        this.status !== "not started" &&
+        this.status !== "ended" &&
+        this.attendees[1].status === "waiting"
+      );
+    }
+  },
   ///////////////////////////////////////////////////////////////////////////////
   //  METHODS - https://vuejs.org/v2/guide/instance.html
   ///////////////////////////////////////////////////////////////////////////////
   methods: {
     // is member
-    start_meeting: function() {
+    start_meeting: function(meeting) {
       this.status = "on air";
       this.snack = "This meeting has started";
       this.showSnackBar = true;
     },
-    end_meeting: function() {
+    end_meeting: function(meeting) {
       this.status = "ended";
       this.snack = "This meeting has ended";
+      this.showSnackBar = true;
+    },
+    raise_hand: function(person) {
+      person.status = "waiting";
+      this.snack = "You have raised your hand.";
+      this.showSnackBar = true;
+      console.log(this.is_active);
+    },
+    appoint: function(person) {
+      person.status = "talking";
+      this.snack = "You have appointed " + person.name + ".";
+      this.showSnackBar = true;
+    },
+    withdraw: function(person) {
+      person.status = "listening";
+      this.snack = "You have withdrawn " + person.name + ".";
+      this.showSnackBar = true;
+      this.action = "reject";
+    },
+    interject: function(person) {
+      person.status = "interjecting";
+      this.snack = "You are interjecting.";
+      this.showSnackBar = true;
+    },
+    on_topic: function(topic) {
+      person.status = "on_topic";
+      this.snack = "You are bored.";
+      this.showSnackBar = true;
+    },
+    off_topic: function(topic) {
+      person.status = "off_topic";
+      this.snack = "You are interested.";
       this.showSnackBar = true;
     }
   }
@@ -275,6 +338,14 @@ export default {
 </script>
 
 <style>
+.md-toolbar {
+  background-color: #404040 !important;
+}
+
+span.md-title {
+  margin-left: 0px !important;
+  font-weight: bold !important;
+}
 .md-content ul {
   margin: 0;
   padding: 0;
@@ -327,6 +398,16 @@ export default {
 }
 .md-bottom-bar-label {
   font-size: 1em;
+}
+
+.md-bottom-bar-item:disabled {
+  background-color: #aaa !important;
+  border: 1px solid white;
+}
+
+.md-bottom-bar-item:disabled .md-icon,
+.md-bottom-bar-item:disabled .md-bottom-bar-label {
+  color: white !important;
 }
 
 .md-active .md-icon,
