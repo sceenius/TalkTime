@@ -167,7 +167,7 @@
           v-if="person.status.substring(2) !== 'invisible'"
           v-for="(person, index) in attendees"
           :key="index"
-          @click="complete(person);"
+          @click="index === 0 ? complete(person) : null;"
           v-bind:style="[
             {
               backgroundColor: color[person.status.substring(2)],
@@ -178,7 +178,7 @@
           <md-icon>{{ icon[person.status.substring(2)] }}</md-icon>
           {{ person.name }}
           <md-menu
-            v-if="person.status !== 'talking'"
+            v-if="person.status.substring(2) !== 'talking'"
             style="padding: 10px; cursor: pointer;"
           >
             <md-icon md-menu-trigger>more_vert</md-icon>
@@ -199,28 +199,28 @@
 
       <div class="bottom-bar">
         <md-button
-          @click="raise_hand(attendees[4]);"
+          @click="raise_hand('colin');"
           :disabled="status === 'not started' || status === 'ended'"
           class="bar-button"
           ><md-icon>pan_tool</md-icon>
           <div>RAISE HAND</div></md-button
         >
         <md-button
-          @click="interject(attendees[4]);"
+          @click="interject('colin');"
           :disabled="status === 'not started' || status === 'ended'"
           class="bar-button"
           ><md-icon>warning</md-icon>
           <div>INTERJECT</div></md-button
         >
         <md-button
-          @click="interject(attendees[4]);"
+          @click="on_topic('colin');"
           :disabled="status === 'not started' || status === 'ended'"
           class="bar-button"
           ><md-icon>mood</md-icon>
           <div>ON TOPIC</div></md-button
         >
         <md-button
-          @click="interject(attendees[4]);"
+          @click="off_topic('colin');"
           :disabled="status === 'not started' || status === 'ended'"
           class="bar-button"
           ><md-icon>mood_bad</md-icon>
@@ -252,9 +252,9 @@ export default {
     topic: "",
     attendees: [
       { name: "standing by...", status: "0 standing_by", talk_time: 0 },
-      { name: "joshua", status: "1 waiting", talk_time: 0 },
-      { name: "klaus", status: "1 waiting", talk_time: 0 },
-      { name: "sam", status: "1 waiting", talk_time: 0 },
+      { name: "joshua", status: "3 waiting", talk_time: 0 },
+      { name: "klaus", status: "3 waiting", talk_time: 0 },
+      { name: "sam", status: "3 waiting", talk_time: 0 },
       { name: "tammy", status: "4 listening", talk_time: 0 },
       { name: "colin", status: "4 listening", talk_time: 0 },
       { name: "heiner", status: "4 listening", talk_time: 0 },
@@ -265,8 +265,8 @@ export default {
       talking: "record_voice_over", // #1
       interjecting: "warning", // #2
       waiting: "pan_tool", // #3
-      listening: "hourglass_empty", // #4
-      completing: "check_circle_outline" // #5
+      listening: "check_box_outline_blank", // #4
+      completing: "check_box" // #5
     },
     color: {
       standing_by: "#e5c62e", // #0
@@ -320,13 +320,29 @@ export default {
       this.snack = "This meeting has ended";
       this.showSnackBar = true;
     },
-    raise_hand: function(person) {
-      person.status = "3 waiting";
+    raise_hand: function(name) {
+      this.attendees.forEach((person, index, arr) => {
+        //console.log(person);
+        if (person.name === name) {
+          person.status = "3 waiting";
+          arr.sort((a, b) => (a.status > b.status) - (a.status < b.status));
+        }
+      });
+
       this.snack = "You have raised your hand.";
       this.showSnackBar = true;
-      this.attendees.sort(
-        (a, b) => (a.status > b.status) - (a.status < b.status)
-      );
+    },
+    interject: function(name) {
+      this.attendees.forEach((person, index, arr) => {
+        //console.log(person);
+        if (person.name === name) {
+          person.status = "2 interjecting";
+          arr.sort((a, b) => (a.status > b.status) - (a.status < b.status));
+        }
+      });
+      console.log(this.attendees);
+      this.snack = "You are interjecting.";
+      this.showSnackBar = true;
     },
     complete: function(person) {
       if (person.status.substring(2) === "standing_by") {
@@ -340,7 +356,10 @@ export default {
       //console.log(this.attendees);
 
       // CASE: next person is waiting to be called
-      if (this.attendees[0].status.substring(2) === "waiting") {
+      if (
+        this.attendees[0].status.substring(2) === "waiting" ||
+        this.attendees[0].status.substring(2) === "interjecting"
+      ) {
         this.attendees[0].status = "1 talking";
 
         // CASE: nobody is waiting to be called, put standing_by back
@@ -356,20 +375,25 @@ export default {
     },
     appoint: function(person) {
       person.status = "1 talking";
+      if (this.attendees[0].status.substring(2) === "standing_by") {
+        this.attendees[0].status = "6 invisible";
+      }
+      this.attendees.sort(
+        (a, b) => (a.status > b.status) - (a.status < b.status)
+      );
       this.snack = "You have appointed " + person.name + ".";
       this.showSnackBar = true;
     },
     withdraw: function(person) {
       person.status = "4 listening";
+      this.attendees.sort(
+        (a, b) => (a.status > b.status) - (a.status < b.status)
+      );
       this.snack = "You have withdrawn " + person.name + ".";
       this.showSnackBar = true;
       this.action = "reject";
     },
-    interject: function(person) {
-      person.status = "2 interjecting";
-      this.snack = "You are interjecting.";
-      this.showSnackBar = true;
-    },
+
     on_topic: function(topic) {
       person.status = "on_topic";
       this.snack = "You are bored.";
