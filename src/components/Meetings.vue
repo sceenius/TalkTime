@@ -408,6 +408,7 @@ export default {
       if (person.status.substring(2) === "standing_by") {
         person.status = "6 invisible";
       } else {
+        person.talk_time = person.talk_time + this.time;
         person.status = "5 completing";
       }
       this.attendees.sort(
@@ -425,17 +426,8 @@ export default {
         this.time = 0;
         clearInterval(this.timer);
         this.timer = setInterval(() => {
-          //if (this.time > 0) {
           this.time++;
-          // } else {
-          //   clearInterval(this.timer);
-          //   //this.sound.play()
-          //   this.reset();
-          // }
-          console.log(this.time);
         }, 1000);
-        console.log(this.attendees[0].started);
-        // start timer
 
         // CASE: nobody is waiting to be called, put standing_by back
       } else {
