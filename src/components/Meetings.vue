@@ -165,7 +165,7 @@
             >{{ format(person.talk_time) }}</span
           >
           <md-icon>{{ icon[person.status.substring(2)] }}</md-icon>
-          {{ person.name }}
+          {{ person.name }} <md-icon>{{ person.mood }}</md-icon>
           <md-menu
             v-if="person.status.substring(2) !== 'talking' && index !== 0"
             style="padding: 10px; cursor: pointer;"
@@ -504,14 +504,34 @@ export default {
     },
 
     // AGREE WITH TOPIC
-    on_topic: function(topic) {
-      this.snack = "You are bored.";
+    on_topic: function(name) {
+      this.attendees.forEach((person, index, arr) => {
+        //if found, set mood and clear after 1 min
+        if (person.name === name) {
+          person.mood = "mood";
+          clearInterval(person.mood_timer);
+          person.mood_timer = setInterval(() => {
+            person.mood = "";
+          }, 60000);
+        }
+      });
+      this.snack = "Your mood has been registered.";
       this.showSnackBar = true;
     },
 
     // DISAGREE WITH TOPIC
-    off_topic: function(topic) {
-      this.snack = "You are interested.";
+    off_topic: function(name) {
+      this.attendees.forEach((person, index, arr) => {
+        //if found, set mood and clear after 1 min
+        if (person.name === name) {
+          person.mood = "mood_bad";
+          clearInterval(person.mood_timer);
+          person.mood_timer = setInterval(() => {
+            person.mood = "";
+          }, 60000);
+        }
+      });
+      this.snack = "Your mood has been registered.";
       this.showSnackBar = true;
     }
   }
