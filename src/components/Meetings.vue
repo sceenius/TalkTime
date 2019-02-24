@@ -292,7 +292,9 @@ export default {
 
   computed: {
     counter: function() {
-      return Moment(this.time).format("H:mm:ss");
+      return Moment(0)
+        .seconds(this.time)
+        .format("mm:ss");
     }
   },
   ///////////////////////////////////////////////////////////////////////////////
