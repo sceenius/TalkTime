@@ -91,7 +91,10 @@
         <md-menu style="padding: 10px; cursor: pointer;">
           <md-icon md-menu-trigger>more_vert</md-icon>
 
-          <md-menu-content class="md-card-menu">
+          <md-menu-content
+            class="md-card-menu"
+            style="min-height: 255px !important;"
+          >
             <md-menu-item @click="start_meeting();">
               <md-icon>power_settings_new</md-icon>
               <span>Start Meeting</span>
@@ -117,44 +120,18 @@
               <span>Round Robin</span>
             </md-menu-item>
 
-            <md-menu-item @click="round_robin();">
+            <md-menu-item @click="random_round();">
               <md-icon>update</md-icon>
               <span>Random Round</span>
+            </md-menu-item>
+            <md-menu-item @click="clear();">
+              <md-icon>check_box_outline_blank</md-icon>
+              <span>Clear</span>
             </md-menu-item>
           </md-menu-content>
         </md-menu>
       </div>
     </md-toolbar>
-
-    <!--
-      ----------------------------------------------------------------------
-        DRAWER MENU BAR - https://vuematerial.io/components/drawer
-      ----------------------------------------------------------------------
-    -->
-    <!--
-      md-drawer :md-active.sync="showNavigation" id="drawer">
-      <md-toolbar
-        class="md-transparent"
-        md-elevation="0"
-        :class="['md-primary']"
-      >
-      </md-toolbar
-    -->
-
-    <!--
-      ----------------------------------------------------------------------
-        LIST - https://vuematerial.io/components/list/
-      ----------------------------------------------------------------------
-    -->
-    <!--
-      md-list>
-          <md-list-item>
-            <md-icon>person</md-icon>
-            <span class="md-list-item-text">text</span>
-          </md-list-item>
-        </md-list>
-      </md-drawer
-    -->
 
     <!--
       ----------------------------------------------------------------------
@@ -309,7 +286,47 @@ export default {
   //  METHODS - https://vuejs.org/v2/guide/instance.html
   ///////////////////////////////////////////////////////////////////////////////
   methods: {
-    // is member
+    check_in: function(meeting) {
+      this.attendees.forEach((person, index, arr) => {
+        //console.log(person);
+        if (person.name !== "standing by...") {
+          person.status = "3 waiting";
+          arr.sort((a, b) => (a.status > b.status) - (a.status < b.status));
+        }
+      });
+      this.snack = "Ready for checking in.";
+      this.showSnackBar = true;
+    },
+    random_round: function(meeting) {
+      this.attendees.forEach((person, index, arr) => {
+        //console.log(person);
+        if (person.name !== "standing by...") {
+          person.status = "3 waiting";
+        }
+      });
+
+      this.attendees.sort(function() {
+        return 0.5 - Math.random();
+      });
+      this.attendees.sort(
+        (a, b) => (a.status > b.status) - (a.status < b.status)
+      );
+      this.snack = "Ready for random round.";
+      this.showSnackBar = true;
+    },
+    clear: function(meeting) {
+      this.attendees.forEach((person, index, arr) => {
+        //console.log(person);
+        if (person.name !== "standing by...") {
+          person.status = "4 listening";
+        }
+      });
+      this.attendees.sort(
+        (a, b) => (a.status > b.status) - (a.status < b.status)
+      );
+      this.snack = "Ready for checking in.";
+      this.showSnackBar = true;
+    },
     start_meeting: function(meeting) {
       this.status = "on air";
       this.snack = "This meeting has started";
