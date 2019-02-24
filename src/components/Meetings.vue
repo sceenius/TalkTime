@@ -176,28 +176,28 @@
 
       <div class="bottom-bar">
         <md-button
-          @click="raise_hand('colin');"
+          @click="raise_hand(TESTER);"
           :disabled="status === 'not started' || status === 'ended'"
           class="bar-button"
           ><md-icon>pan_tool</md-icon>
           <div>RAISE HAND</div></md-button
         >
         <md-button
-          @click="interject('colin');"
+          @click="interject(TESTER);"
           :disabled="status === 'not started' || status === 'ended'"
           class="bar-button"
           ><md-icon>warning</md-icon>
           <div>INTERJECT</div></md-button
         >
         <md-button
-          @click="on_topic('colin');"
+          @click="on_topic(TESTER);"
           :disabled="status === 'not started' || status === 'ended'"
           class="bar-button"
           ><md-icon>mood</md-icon>
           <div>ON TOPIC</div></md-button
         >
         <md-button
-          @click="off_topic('colin');"
+          @click="off_topic(TESTER);"
           :disabled="status === 'not started' || status === 'ended'"
           class="bar-button"
           ><md-icon>mood_bad</md-icon>
@@ -227,6 +227,7 @@ export default {
     status: "not started",
     action: "none",
     topic: "",
+    TESTER: "colin",
     attendees: [
       { name: "standing by...", status: "0 standing_by", talk_time: 0 },
       { name: "joshua", status: "3 waiting", talk_time: 0 },
@@ -291,9 +292,26 @@ export default {
         //console.log(person);
         if (person.name !== "standing by...") {
           person.status = "3 waiting";
-          arr.sort((a, b) => (a.status > b.status) - (a.status < b.status));
         }
       });
+      this.attendees.sort(
+        (a, b) => (a.status > b.status) - (a.status < b.status)
+      );
+      this.snack = "Ready for checking in.";
+      this.showSnackBar = true;
+    },
+
+    check_out: function(meeting) {
+      this.attendees.forEach((person, index, arr) => {
+        //console.log(person);
+        if (person.name !== "standing by...") {
+          person.status = "3 waiting";
+        }
+      });
+      this.attendees.reverse();
+      this.attendees.sort(
+        (a, b) => (a.status > b.status) - (a.status < b.status)
+      );
       this.snack = "Ready for checking in.";
       this.showSnackBar = true;
     },
@@ -320,6 +338,9 @@ export default {
         if (person.name !== "standing by...") {
           person.status = "4 listening";
         }
+        if (person.status.substring(2) === "invisible") {
+          person.status = "0 standing_by";
+        }
       });
       this.attendees.sort(
         (a, b) => (a.status > b.status) - (a.status < b.status)
@@ -338,28 +359,36 @@ export default {
       this.showSnackBar = true;
     },
     raise_hand: function(name) {
-      this.attendees.forEach((person, index, arr) => {
-        //console.log(person);
-        if (person.name === name) {
-          person.status = "3 waiting";
-          arr.sort((a, b) => (a.status > b.status) - (a.status < b.status));
-        }
-      });
+      if (this.attendees[0].name !== this.TESTER) {
+        this.attendees.forEach((person, index, arr) => {
+          //console.log(person);
+          if (person.name === name) {
+            person.status = "3 waiting";
+          }
+        });
 
-      this.snack = "You have raised your hand.";
-      this.showSnackBar = true;
+        this.attendees.sort(
+          (a, b) => (a.status > b.status) - (a.status < b.status)
+        );
+        this.snack = "You have raised your hand.";
+        this.showSnackBar = true;
+      }
     },
     interject: function(name) {
-      this.attendees.forEach((person, index, arr) => {
-        //console.log(person);
-        if (person.name === name) {
-          person.status = "2 interjecting";
-          arr.sort((a, b) => (a.status > b.status) - (a.status < b.status));
-        }
-      });
-      console.log(this.attendees);
-      this.snack = "You are interjecting.";
-      this.showSnackBar = true;
+      if (this.attendees[0].name !== this.TESTER) {
+        this.attendees.forEach((person, index, arr) => {
+          //console.log(person);
+          if (person.name === name) {
+            person.status = "2 interjecting";
+          }
+        });
+        this.attendees.sort(
+          (a, b) => (a.status > b.status) - (a.status < b.status)
+        );
+        //console.log(this.attendees);
+        this.snack = "You are interjecting.";
+        this.showSnackBar = true;
+      }
     },
     complete: function(person) {
       if (person.status.substring(2) === "standing_by") {
