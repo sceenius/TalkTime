@@ -65,7 +65,7 @@
       -->
       <!-- Show the title and navigation path here -->
       <!-- img src="https://diglife.com/brand/logo_primary.svg" / -->
-      <span class="md-title"> <md-icon>timelapse</md-icon> TALK TIME</span>
+      <span class="md-title"> <md-icon>timelapse</md-icon> GCC TALK TIME</span>
       <md-chip
         v-if="status == 'on air'"
         style="background-color: #e64d3d !important;"
@@ -155,7 +155,12 @@
           <span
             style="position: absolute; right: 10px; margin-top: 2px;"
             v-if="index === 0"
-            >{{ counter }}</span
+            >{{ format(time) }}</span
+          >
+          <span
+            style="position: absolute; right: 40px; margin-top: 3px; font-size: 0.8em"
+            v-else
+            >{{ format(person.talk_time) }}</span
           >
           <md-icon>{{ icon[person.status.substring(2)] }}</md-icon>
           {{ person.name }}
@@ -291,9 +296,9 @@ export default {
   mounted: function() {},
 
   computed: {
-    counter: function() {
+    counter2: function(seconds) {
       return Moment(0)
-        .seconds(this.time)
+        .seconds(seconds)
         .format("mm:ss");
     }
   },
@@ -301,6 +306,11 @@ export default {
   //  METHODS - https://vuejs.org/v2/guide/instance.html
   ///////////////////////////////////////////////////////////////////////////////
   methods: {
+    format: function(seconds) {
+      return Moment(0)
+        .seconds(seconds)
+        .format("mm:ss");
+    },
     check_in: function(meeting) {
       this.attendees.forEach((person, index, arr) => {
         //console.log(person);
