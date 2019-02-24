@@ -152,10 +152,15 @@
             }
           ]"
         >
+          <span
+            style="position: absolute; right: 10px; margin-top: 2px;"
+            v-if="index === 0"
+            >{{ counter }}</span
+          >
           <md-icon>{{ icon[person.status.substring(2)] }}</md-icon>
           {{ person.name }}
           <md-menu
-            v-if="person.status.substring(2) !== 'talking'"
+            v-if="person.status.substring(2) !== 'talking' && index !== 0"
             style="padding: 10px; cursor: pointer;"
           >
             <md-icon md-menu-trigger>more_vert</md-icon>
@@ -210,6 +215,7 @@
 </template>
 
 <script>
+import Moment from "moment";
 export default {
   name: "Meetings",
   props: { msg: String },
@@ -227,9 +233,11 @@ export default {
     status: "not started",
     action: "none",
     topic: "",
+    time: 0,
+    timer: null,
     TESTER: "colin",
     attendees: [
-      { name: "standing by...", status: "0 standing_by", talk_time: 0 },
+      { name: "click to continue...", status: "0 standing_by", talk_time: 0 },
       { name: "joshua", status: "3 waiting", talk_time: 0 },
       { name: "klaus", status: "3 waiting", talk_time: 0 },
       { name: "sam", status: "3 waiting", talk_time: 0 },
@@ -282,7 +290,11 @@ export default {
   ///////////////////////////////////////////////////////////////////////////////
   mounted: function() {},
 
-  computed: {},
+  computed: {
+    counter: function() {
+      return Moment(this.time).format("H:mm:ss");
+    }
+  },
   ///////////////////////////////////////////////////////////////////////////////
   //  METHODS - https://vuejs.org/v2/guide/instance.html
   ///////////////////////////////////////////////////////////////////////////////
@@ -290,7 +302,7 @@ export default {
     check_in: function(meeting) {
       this.attendees.forEach((person, index, arr) => {
         //console.log(person);
-        if (person.name !== "standing by...") {
+        if (person.name !== "click to continue...") {
           person.status = "3 waiting";
         }
       });
@@ -304,7 +316,7 @@ export default {
     check_out: function(meeting) {
       this.attendees.forEach((person, index, arr) => {
         //console.log(person);
-        if (person.name !== "standing by...") {
+        if (person.name !== "click to continue...") {
           person.status = "3 waiting";
         }
       });
@@ -318,7 +330,7 @@ export default {
     random_round: function(meeting) {
       this.attendees.forEach((person, index, arr) => {
         //console.log(person);
-        if (person.name !== "standing by...") {
+        if (person.name !== "click to continue...") {
           person.status = "3 waiting";
         }
       });
@@ -335,7 +347,7 @@ export default {
     clear: function(meeting) {
       this.attendees.forEach((person, index, arr) => {
         //console.log(person);
-        if (person.name !== "standing by...") {
+        if (person.name !== "click to continue...") {
           person.status = "4 listening";
         }
         if (person.status.substring(2) === "invisible") {
@@ -407,6 +419,21 @@ export default {
         this.attendees[0].status.substring(2) === "interjecting"
       ) {
         this.attendees[0].status = "1 talking";
+        this.attendees[0].started = new Date().getTime();
+        this.time = 0;
+        clearInterval(this.timer);
+        this.timer = setInterval(() => {
+          //if (this.time > 0) {
+          this.time++;
+          // } else {
+          //   clearInterval(this.timer);
+          //   //this.sound.play()
+          //   this.reset();
+          // }
+          console.log(this.time);
+        }, 1000);
+        console.log(this.attendees[0].started);
+        // start timer
 
         // CASE: nobody is waiting to be called, put standing_by back
       } else {
