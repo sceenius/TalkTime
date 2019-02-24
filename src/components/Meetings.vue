@@ -115,10 +115,12 @@
               <span>Check-out</span>
             </md-menu-item>
 
-            <md-menu-item @click="round_robin();">
-              <md-icon>update</md-icon>
-              <span>Round Robin</span>
-            </md-menu-item>
+            <!--
+              md-menu-item @click="round_robin();">
+                <md-icon>update</md-icon>
+                <span>Round Robin</span>
+              </md-menu-item
+            -->
 
             <md-menu-item @click="random_round();">
               <md-icon>update</md-icon>
@@ -306,114 +308,14 @@ export default {
   //  METHODS - https://vuejs.org/v2/guide/instance.html
   ///////////////////////////////////////////////////////////////////////////////
   methods: {
+    // SIMPLE FORMATTING OF 00:00
     format: function(seconds) {
       return Moment(0)
         .seconds(seconds)
         .format("mm:ss");
     },
-    check_in: function(meeting) {
-      this.attendees.forEach((person, index, arr) => {
-        //console.log(person);
-        if (person.name !== "click to continue...") {
-          person.status = "3 waiting";
-        }
-      });
-      this.attendees.sort(
-        (a, b) => (a.status > b.status) - (a.status < b.status)
-      );
-      this.snack = "Ready for checking in.";
-      this.showSnackBar = true;
-    },
 
-    check_out: function(meeting) {
-      this.attendees.forEach((person, index, arr) => {
-        //console.log(person);
-        if (person.name !== "click to continue...") {
-          person.status = "3 waiting";
-        }
-      });
-      this.attendees.reverse();
-      this.attendees.sort(
-        (a, b) => (a.status > b.status) - (a.status < b.status)
-      );
-      this.snack = "Ready for checking in.";
-      this.showSnackBar = true;
-    },
-    random_round: function(meeting) {
-      this.attendees.forEach((person, index, arr) => {
-        //console.log(person);
-        if (person.name !== "click to continue...") {
-          person.status = "3 waiting";
-        }
-      });
-
-      this.attendees.sort(function() {
-        return 0.5 - Math.random();
-      });
-      this.attendees.sort(
-        (a, b) => (a.status > b.status) - (a.status < b.status)
-      );
-      this.snack = "Ready for random round.";
-      this.showSnackBar = true;
-    },
-    clear: function(meeting) {
-      this.attendees.forEach((person, index, arr) => {
-        //console.log(person);
-        if (person.name !== "click to continue...") {
-          person.status = "4 listening";
-        }
-        if (person.status.substring(2) === "invisible") {
-          person.status = "0 standing_by";
-        }
-      });
-      this.attendees.sort(
-        (a, b) => (a.status > b.status) - (a.status < b.status)
-      );
-      this.snack = "Ready for checking in.";
-      this.showSnackBar = true;
-    },
-    start_meeting: function(meeting) {
-      this.status = "on air";
-      this.snack = "This meeting has started";
-      this.showSnackBar = true;
-    },
-    end_meeting: function(meeting) {
-      this.status = "ended";
-      this.snack = "This meeting has ended";
-      this.showSnackBar = true;
-    },
-    raise_hand: function(name) {
-      if (this.attendees[0].name !== this.TESTER) {
-        this.attendees.forEach((person, index, arr) => {
-          //console.log(person);
-          if (person.name === name) {
-            person.status = "3 waiting";
-          }
-        });
-
-        this.attendees.sort(
-          (a, b) => (a.status > b.status) - (a.status < b.status)
-        );
-        this.snack = "You have raised your hand.";
-        this.showSnackBar = true;
-      }
-    },
-    interject: function(name) {
-      if (this.attendees[0].name !== this.TESTER) {
-        this.attendees.forEach((person, index, arr) => {
-          //console.log(person);
-          if (person.name === name) {
-            person.status = "2 interjecting";
-          }
-        });
-        this.attendees.sort(
-          (a, b) => (a.status > b.status) - (a.status < b.status)
-        );
-        //console.log(this.attendees);
-        this.snack = "You are interjecting.";
-        this.showSnackBar = true;
-      }
-    },
+    // MOST IMPORTANT FUNCTION - "I AM COMPLETE"
     complete: function(person) {
       if (person.status.substring(2) === "standing_by") {
         person.status = "6 invisible";
@@ -441,6 +343,7 @@ export default {
 
         // CASE: nobody is waiting to be called, put standing_by back
       } else {
+        this.time = 0; // don't stop the timer, useful for a quiet minute
         this.attendees.forEach((person, index, arr) => {
           //console.log(person);
           if (person.status.substring(2) === "invisible") {
@@ -450,17 +353,146 @@ export default {
         });
       }
     },
+
+    // ALL ATTENDEES = WAITING
+    check_in: function(meeting) {
+      this.attendees.forEach((person, index, arr) => {
+        //console.log(person);
+        if (person.name !== "click to continue...") {
+          person.status = "3 waiting";
+        }
+      });
+      this.attendees.sort(
+        (a, b) => (a.status > b.status) - (a.status < b.status)
+      );
+      this.snack = "Ready for checking in.";
+      this.showSnackBar = true;
+    },
+
+    // ALL ATTENDEES WAITING IN REVERSE ORDER
+    check_out: function(meeting) {
+      this.attendees.forEach((person, index, arr) => {
+        //console.log(person);
+        if (person.name !== "click to continue...") {
+          person.status = "3 waiting";
+        }
+      });
+      this.attendees.reverse();
+      this.attendees.sort(
+        (a, b) => (a.status > b.status) - (a.status < b.status)
+      );
+      this.snack = "Ready for checking in.";
+      this.showSnackBar = true;
+    },
+
+    // ALL ATTENDEES WAITING IN RANDOM ORDER
+    random_round: function(meeting) {
+      this.attendees.forEach((person, index, arr) => {
+        //console.log(person);
+        if (person.name !== "click to continue...") {
+          person.status = "3 waiting";
+        }
+      });
+
+      this.attendees.sort(function() {
+        return 0.5 - Math.random();
+      });
+      this.attendees.sort(
+        (a, b) => (a.status > b.status) - (a.status < b.status)
+      );
+      this.snack = "Ready for random round.";
+      this.showSnackBar = true;
+    },
+
+    // CLEAR ALL ATTENDEE STATUS, BUT NOT TIME
+    clear: function(meeting) {
+      this.attendees.forEach((person, index, arr) => {
+        //console.log(person);
+        if (person.name !== "click to continue...") {
+          person.status = "4 listening";
+        }
+        if (person.status.substring(2) === "invisible") {
+          person.status = "0 standing_by";
+        }
+      });
+      this.attendees.sort(
+        (a, b) => (a.status > b.status) - (a.status < b.status)
+      );
+      this.snack = "Ready for checking in.";
+      this.showSnackBar = true;
+    },
+
+    // ENABLE BUTTONS
+    start_meeting: function(meeting) {
+      this.status = "on air";
+      this.snack = "This meeting has started";
+      this.showSnackBar = true;
+    },
+
+    // DISABLE BUTTONS
+    end_meeting: function(meeting) {
+      this.status = "ended";
+      this.snack = "This meeting has ended";
+      this.showSnackBar = true;
+    },
+
+    // BIG BUTTON RAISE HAND
+    raise_hand: function(name) {
+      if (this.attendees[0].name !== this.TESTER) {
+        this.attendees.forEach((person, index, arr) => {
+          //console.log(person);
+          if (person.name === name) {
+            person.status = "3 waiting";
+          }
+        });
+
+        this.attendees.sort(
+          (a, b) => (a.status > b.status) - (a.status < b.status)
+        );
+        this.snack = "You have raised your hand.";
+        this.showSnackBar = true;
+      }
+    },
+
+    // BIG BUTTON INTERJECT
+    interject: function(name) {
+      if (this.attendees[0].name !== this.TESTER) {
+        this.attendees.forEach((person, index, arr) => {
+          //console.log(person);
+          if (person.name === name) {
+            person.status = "2 interjecting";
+          }
+        });
+        this.attendees.sort(
+          (a, b) => (a.status > b.status) - (a.status < b.status)
+        );
+        //console.log(this.attendees);
+        this.snack = "You are interjecting.";
+        this.showSnackBar = true;
+      }
+    },
+
+    // PICK ONE ATTENDEE TO TALK, GOOD FOR MANUAL UPDATE
     appoint: function(person) {
       person.status = "1 talking";
+      // move standing_by away
       if (this.attendees[0].status.substring(2) === "standing_by") {
         this.attendees[0].status = "6 invisible";
       }
+
+      // move current talker away
+      if (this.attendees[0].status.substring(2) === "talking") {
+        this.attendees[0].status = "5 completing";
+      }
+
       this.attendees.sort(
         (a, b) => (a.status > b.status) - (a.status < b.status)
       );
       this.snack = "You have appointed " + person.name + ".";
       this.showSnackBar = true;
     },
+
+    // LOWER HAND
     withdraw: function(person) {
       person.status = "4 listening";
       this.attendees.sort(
@@ -471,13 +503,14 @@ export default {
       this.action = "reject";
     },
 
+    // AGREE WITH TOPIC
     on_topic: function(topic) {
-      person.status = "on_topic";
       this.snack = "You are bored.";
       this.showSnackBar = true;
     },
+
+    // DISAGREE WITH TOPIC
     off_topic: function(topic) {
-      person.status = "off_topic";
       this.snack = "You are interested.";
       this.showSnackBar = true;
     }
