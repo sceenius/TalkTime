@@ -185,38 +185,38 @@
           </md-menu>
         </li>
       </ul>
-
-      <div class="bottom-bar">
-        <md-button
-          @click="raise_hand(TESTER);"
-          :disabled="status === 'not started' || status === 'ended'"
-          class="bar-button"
-          ><md-icon>pan_tool</md-icon>
-          <div>RAISE HAND</div></md-button
-        >
-        <md-button
-          @click="interject(TESTER);"
-          :disabled="status === 'not started' || status === 'ended'"
-          class="bar-button"
-          ><md-icon>warning</md-icon>
-          <div>INTERJECT</div></md-button
-        >
-        <md-button
-          @click="on_topic(TESTER);"
-          :disabled="status === 'not started' || status === 'ended'"
-          class="bar-button"
-          ><md-icon>mood</md-icon>
-          <div>ON TOPIC</div></md-button
-        >
-        <md-button
-          @click="off_topic(TESTER);"
-          :disabled="status === 'not started' || status === 'ended'"
-          class="bar-button"
-          ><md-icon>mood_bad</md-icon>
-          <div>OFF TOPIC</div></md-button
-        >
-      </div>
     </md-content>
+
+    <div class="bottom-bar">
+      <md-button
+        @click="raise_hand(TESTER);"
+        :disabled="status === 'not started' || status === 'ended'"
+        class="bar-button"
+        ><md-icon>pan_tool</md-icon>
+        <div>RAISE HAND</div></md-button
+      >
+      <md-button
+        @click="interject(TESTER);"
+        :disabled="status === 'not started' || status === 'ended'"
+        class="bar-button"
+        ><md-icon>warning</md-icon>
+        <div>INTERJECT</div></md-button
+      >
+      <md-button
+        @click="on_topic(TESTER);"
+        :disabled="status === 'not started' || status === 'ended'"
+        class="bar-button"
+        ><md-icon>mood</md-icon>
+        <div>ON TOPIC</div></md-button
+      >
+      <md-button
+        @click="off_topic(TESTER);"
+        :disabled="status === 'not started' || status === 'ended'"
+        class="bar-button"
+        ><md-icon>mood_bad</md-icon>
+        <div>OFF TOPIC</div></md-button
+      >
+    </div>
   </div>
   <!-- END page-container md-layout-column -->
 </template>
@@ -547,6 +547,15 @@ span.md-title {
   margin-left: 0px !important;
   font-weight: bold !important;
 }
+
+.md-content {
+  position: absolute;
+  top: 60px;
+  width: 100%;
+  bottom: 80px !important;
+  overflow: auto;
+}
+
 .md-content ul {
   margin: 0;
   padding: 0;
@@ -633,6 +642,7 @@ span.md-title {
   position: absolute;
   bottom: 0px;
   width: 100%;
+  z-index: 99;
 }
 
 .bar-button:disabled {
