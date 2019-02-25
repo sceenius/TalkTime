@@ -236,7 +236,6 @@ export default {
     timer: null,
     TESTER: "colin",
     mood: 0,
-    signal: 1,
     battery: 1,
     meeting: { duration: 600 },
     attendees: [
@@ -301,21 +300,20 @@ export default {
         this.mood++;
       }
     });
-    this.signal = this.mood / this.attendees.length;
   },
 
   computed: {
     signal_bar: function() {
       let path = "https://ledger.diglife.coop/images/icons/";
-      if (this.signal <= 0) {
+      if (this.mood / this.attendees.length <= 0) {
         return path + "signal_0_bar.png";
-      } else if (this.signal <= 0.3) {
+      } else if (this.mood / (this.attendees.length - 1) <= 0.3) {
         return path + "signal_1_bar.png";
-      } else if (this.signal <= 0.6) {
+      } else if (this.mood / (this.attendees.length - 1) <= 0.6) {
         return path + "signal_2_bar.png";
-      } else if (this.signal <= 0.9) {
+      } else if (this.mood / (this.attendees.length - 1) <= 0.9) {
         return path + "signal_3_bar.png";
-      } else if (this.signal > 0.9) {
+      } else if (this.mood / (this.attendees.length - 1) > 0.9) {
         return path + "signal_4_bar.png";
       }
     },
@@ -556,9 +554,7 @@ export default {
           person.mood_timer = setInterval(() => {
             person.mood = "";
             this.mood--;
-            this.signal = this.mood / this.attendees.length;
             clearInterval(person.mood_timer);
-            console.log(this.signal);
           }, 60000);
         }
         if (person.mood === "mood_bad") {
@@ -567,7 +563,6 @@ export default {
           this.mood++;
         }
       });
-      this.signal = this.mood / this.attendees.length;
       this.snack = "Your mood has been registered.";
       this.showSnackBar = true;
     },
@@ -577,16 +572,15 @@ export default {
       this.mood = 0;
       this.attendees.forEach((person, index, arr) => {
         //if found, set mood and clear after 1 min
+
         if (person.name === name) {
           person.mood = "mood_bad";
           clearInterval(person.mood_timer);
           person.mood_timer = setInterval(() => {
             person.mood = "";
             this.mood++;
-            this.signal = this.mood / this.attendees.length;
-            console.log(this.signal);
             clearInterval(person.mood_timer);
-          }, 60000);
+          }, 10000);
         }
 
         if (person.mood === "mood_bad") {
@@ -595,7 +589,6 @@ export default {
           this.mood++;
         }
       });
-      this.signal = this.mood / this.attendees.length;
       this.snack = "Your mood has been registered.";
       this.showSnackBar = true;
     }
