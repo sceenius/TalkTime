@@ -77,16 +77,8 @@
         >{{ status }}</md-chip
       >
       <div style="position: absolute; right: 0px">
-        <img
-          style=""
-          width="30"
-          src="https://ledger.diglife.coop/images/icons/battery_80.png"
-        />
-        <img
-          style=""
-          width="30"
-          src="https://ledger.diglife.coop/images/icons/signal_3_bar.png"
-        />
+        <img style="" width="30" v-bind:src="battery_bar" />
+        <img style="" width="30" v-bind:src="signal_bar" />
 
         <md-menu style="padding: 10px; cursor: pointer;">
           <md-icon md-menu-trigger>more_vert</md-icon>
@@ -245,11 +237,13 @@ export default {
     TESTER: "colin",
     mood: 0,
     signal: 1,
+    battery: 1,
+    meeting: { duration: 600 },
     attendees: [
       { name: "click to continue...", status: "0 standing_by", talk_time: 0 },
-      { name: "joshua", status: "3 waiting", talk_time: 0, mood: "mood_bad" },
-      { name: "klaus", status: "3 waiting", talk_time: 0, mood: "mood_bad" },
-      { name: "sam", status: "3 waiting", talk_time: 0, mood: "mood_bad" },
+      { name: "joshua", status: "3 waiting", talk_time: 0 },
+      { name: "klaus", status: "3 waiting", talk_time: 0 },
+      { name: "sam", status: "3 waiting", talk_time: 0 },
       { name: "tammy", status: "4 listening", talk_time: 0 },
       { name: "colin", status: "4 listening", talk_time: 0 },
       { name: "heiner", status: "4 listening", talk_time: 0 },
@@ -312,16 +306,37 @@ export default {
 
   computed: {
     signal_bar: function() {
+      let path = "https://ledger.diglife.coop/images/icons/";
       if (this.signal <= 0) {
-        return "signal_0_bar";
-      } else if (this.signal <= 0.2) {
-        return "signal_1_bar";
-      } else if (this.signal <= 0.4) {
-        return "signal_2_bar";
+        return path + "signal_0_bar.png";
+      } else if (this.signal <= 0.3) {
+        return path + "signal_1_bar.png";
       } else if (this.signal <= 0.6) {
-        return "signal_3_bar";
-      } else if (this.signal > 0.8) {
-        return "signal_4_bar";
+        return path + "signal_2_bar.png";
+      } else if (this.signal <= 0.9) {
+        return path + "signal_3_bar.png";
+      } else if (this.signal > 0.9) {
+        return path + "signal_4_bar.png";
+      }
+    },
+    battery_bar: function() {
+      let path = "https://ledger.diglife.coop/images/icons/";
+      if (this.battery <= 0) {
+        return path + "battery_0.png";
+      } else if (this.battery <= 0.2) {
+        return path + "battery_20.png";
+      } else if (this.battery <= 0.3) {
+        return path + "battery_30.png";
+      } else if (this.battery <= 0.5) {
+        return path + "battery_50.png";
+      } else if (this.battery <= 0.6) {
+        return path + "battery_60.png";
+      } else if (this.battery <= 0.8) {
+        return path + "battery_80.png";
+      } else if (this.battery <= 0.9) {
+        return path + "battery_90.png";
+      } else if (this.battery > 0.9) {
+        return path + "battery_100.png";
       }
     }
   },
@@ -360,6 +375,12 @@ export default {
         clearInterval(this.timer);
         this.timer = setInterval(() => {
           this.time++;
+          if (this.attendees[0].name === this.TESTER) {
+            this.battery =
+              1 -
+              (this.time + this.attendees[0].talk_time) /
+                ((this.meeting.duration / this.attendees.length) * 2);
+          }
         }, 1000);
 
         // CASE: nobody is waiting to be called, put standing_by back
