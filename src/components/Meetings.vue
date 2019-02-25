@@ -243,11 +243,13 @@ export default {
     time: 0,
     timer: null,
     TESTER: "colin",
+    mood: 0,
+    signal: 1,
     attendees: [
       { name: "click to continue...", status: "0 standing_by", talk_time: 0 },
-      { name: "joshua", status: "3 waiting", talk_time: 0 },
-      { name: "klaus", status: "3 waiting", talk_time: 0 },
-      { name: "sam", status: "3 waiting", talk_time: 0 },
+      { name: "joshua", status: "3 waiting", talk_time: 0, mood: "mood_bad" },
+      { name: "klaus", status: "3 waiting", talk_time: 0, mood: "mood_bad" },
+      { name: "sam", status: "3 waiting", talk_time: 0, mood: "mood_bad" },
       { name: "tammy", status: "4 listening", talk_time: 0 },
       { name: "colin", status: "4 listening", talk_time: 0 },
       { name: "heiner", status: "4 listening", talk_time: 0 },
@@ -295,13 +297,32 @@ export default {
   ///////////////////////////////////////////////////////////////////////////////
   //  CREATED - https://vuejs.org/v2/guide/instance.html
   ///////////////////////////////////////////////////////////////////////////////
-  mounted: function() {},
+  mounted: function() {
+    // compute the signal
+    this.mood = 0;
+    this.attendees.forEach((person, index, arr) => {
+      if (person.mood === "mood_bad") {
+        this.mood--;
+      } else {
+        this.mood++;
+      }
+    });
+    this.signal = this.mood / this.attendees.length;
+  },
 
   computed: {
-    counter2: function(seconds) {
-      return Moment(0)
-        .seconds(seconds)
-        .format("mm:ss");
+    signal_bar: function() {
+      if (this.signal <= 0) {
+        return "signal_0_bar";
+      } else if (this.signal <= 0.2) {
+        return "signal_1_bar";
+      } else if (this.signal <= 0.4) {
+        return "signal_2_bar";
+      } else if (this.signal <= 0.6) {
+        return "signal_3_bar";
+      } else if (this.signal > 0.8) {
+        return "signal_4_bar";
+      }
     }
   },
   ///////////////////////////////////////////////////////////////////////////////
@@ -505,6 +526,7 @@ export default {
 
     // AGREE WITH TOPIC
     on_topic: function(name) {
+      this.mood = 0;
       this.attendees.forEach((person, index, arr) => {
         //if found, set mood and clear after 1 min
         if (person.name === name) {
@@ -514,13 +536,21 @@ export default {
             person.mood = "";
           }, 60000);
         }
+        if (person.mood === "mood_bad") {
+          this.mood--;
+        } else {
+          this.mood++;
+        }
       });
+      console.log(this.mood, this.attendees.length);
+      this.signal = this.mood / this.attendees.length;
       this.snack = "Your mood has been registered.";
       this.showSnackBar = true;
     },
 
     // DISAGREE WITH TOPIC
     off_topic: function(name) {
+      this.mood = 0;
       this.attendees.forEach((person, index, arr) => {
         //if found, set mood and clear after 1 min
         if (person.name === name) {
@@ -530,7 +560,14 @@ export default {
             person.mood = "";
           }, 60000);
         }
+
+        if (person.mood === "mood_bad") {
+          this.mood--;
+        } else {
+          this.mood++;
+        }
       });
+      this.signal = this.mood / this.attendees.length;
       this.snack = "Your mood has been registered.";
       this.showSnackBar = true;
     }
