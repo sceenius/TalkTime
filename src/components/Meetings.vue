@@ -65,7 +65,7 @@
       -->
       <!-- Show the title and navigation path here -->
       <!-- img src="https://diglife.com/brand/logo_primary.svg" / -->
-      <span class="md-title"> <md-icon>timelapse</md-icon> GCC TALK TIME</span>
+      <span class="md-title"> <md-icon>timelapse</md-icon> TALK TIME</span>
       <md-chip
         v-if="status == 'on air'"
         style="background-color: #e64d3d !important;"
@@ -555,6 +555,10 @@ export default {
           clearInterval(person.mood_timer);
           person.mood_timer = setInterval(() => {
             person.mood = "";
+            this.mood--;
+            this.signal = this.mood / this.attendees.length;
+            clearInterval(person.mood_timer);
+            console.log(this.signal);
           }, 60000);
         }
         if (person.mood === "mood_bad") {
@@ -563,7 +567,6 @@ export default {
           this.mood++;
         }
       });
-      console.log(this.mood, this.attendees.length);
       this.signal = this.mood / this.attendees.length;
       this.snack = "Your mood has been registered.";
       this.showSnackBar = true;
@@ -579,6 +582,10 @@ export default {
           clearInterval(person.mood_timer);
           person.mood_timer = setInterval(() => {
             person.mood = "";
+            this.mood++;
+            this.signal = this.mood / this.attendees.length;
+            console.log(this.signal);
+            clearInterval(person.mood_timer);
           }, 60000);
         }
 
