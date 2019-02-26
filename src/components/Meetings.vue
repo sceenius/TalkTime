@@ -325,6 +325,22 @@ export default {
     meetingsRef.on("child_added", user => {
       let data = user.val();
 
+      ///////////////////////////////////////////////////////////////////
+      // CASES TO ADJUST DATA - PERSON IS TALKING
+      ///////////////////////////////////////////////////////////////////
+      if (data.status.substring(2) === "talking") {
+        // move standing_by away
+        if (this.attendees[0].status.substring(2) === "standing_by") {
+          this.attendees[0].status = "6 invisible";
+        }
+
+        // move current talker away
+        else if (this.attendees[0].status.substring(2) === "talking") {
+          this.attendees[0].status = "7 completing";
+          meetingsRef.child(this.attendees[0].name).update(this.attendees[0]);
+        }
+      }
+
       // compute mood
       if (data.mood === "mood_bad") {
         this.mood--;
@@ -333,6 +349,43 @@ export default {
       }
       // add  data to users array
       this.attendees.push(data);
+      this.attendees.sort(SortByName);
+    });
+
+    meetingsRef.on("child_changed", user => {
+      let data = user.val();
+      console.log(data);
+
+      ///////////////////////////////////////////////////////////////////
+      // CASES TO ADJUST DATA - PERSON IS TALKING
+      ///////////////////////////////////////////////////////////////////
+      if (data.status.substring(2) === "talking") {
+        // move standing_by away
+        if (this.attendees[0].status.substring(2) === "standing_by") {
+          this.attendees[0].status = "6 invisible";
+        }
+
+        // move current talker away
+        else if (this.attendees[0].status.substring(2) === "talking") {
+          this.attendees[0].status = "7 completing";
+          meetingsRef.child(this.attendees[0].name).update(this.attendees[0]);
+        }
+      }
+
+      ///////////////////////////////////////////////////////////////////
+      // CASES TO ADJUST DATA - PERSON IS LISTENING
+      ///////////////////////////////////////////////////////////////////
+      else if (data.status.substring(2) === "listening") {
+        // find person and change status
+        this.attendees.forEach((person, index, arr) => {
+          //console.log(person);
+          if (person.name === data.name) {
+            person.status = "4 listening";
+          }
+        });
+      }
+
+      // always sort at the end
       this.attendees.sort(SortByName);
     });
 
@@ -345,7 +398,6 @@ export default {
 
   computed: {
     signal_bar: function() {
-      console.log("-----", this.mood);
       let path = "https://ledger.diglife.coop/images/icons/";
       if (this.mood / (this.attendees.length - 1) <= 0) {
         return path + "signal_0_bar.png";
@@ -563,16 +615,21 @@ export default {
 
     // BIG BUTTON INTERJECT
     interject: function(name) {
+      let meetingsRef = db.database().ref("meetings/test/attendees");
+
       if (this.attendees[0].name !== this.TESTER) {
         this.attendees.forEach((person, index, arr) => {
           //console.log(person);
+          // non-racing case
           if (person.name === name && person.status.substring(2) !== "racing") {
             person.status = "2 interjecting";
+            meetingsRef.child(person.name).update(person);
           } else if (
             person.name === name &&
             person.status.substring(2) === "racing"
           ) {
             person.status = "1 talking";
+            meetingsRef.child(person.name).update(person);
             if (this.attendees[0].status.substring(2) === "standing_by") {
               this.attendees[0].status = "6 invisible";
             }
@@ -589,20 +646,10 @@ export default {
 
     // PICK ONE ATTENDEE TO TALK, GOOD FOR MANUAL UPDATE
     appoint: function(person) {
+      let meetingsRef = db.database().ref("meetings/test/attendees");
       person.status = "1 talking";
-      // move standing_by away
-      if (this.attendees[0].status.substring(2) === "standing_by") {
-        this.attendees[0].status = "6 invisible";
-      }
+      meetingsRef.child(person.name).update(person);
 
-      // move current talker away
-      if (this.attendees[0].status.substring(2) === "talking") {
-        this.attendees[0].status = "7 completing";
-      }
-
-      this.attendees.sort(
-        (a, b) => (a.status > b.status) - (a.status < b.status)
-      );
       this.snack = "You have appointed " + person.name + ".";
       this.showSnackBar = true;
     },
@@ -610,6 +657,9 @@ export default {
     // LOWER HAND
     withdraw: function(person) {
       person.status = "4 listening";
+      let meetingsRef = db.database().ref("meetings/test/attendees");
+      meetingsRef.child(person.name).update(person);
+
       this.attendees.sort(
         (a, b) => (a.status > b.status) - (a.status < b.status)
       );
