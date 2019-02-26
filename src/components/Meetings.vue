@@ -186,7 +186,11 @@
     <div class="bottom-bar">
       <md-button
         @click="raise_hand(TESTER);"
-        :disabled="status === 'not started' || status === 'ended'"
+        :disabled="
+          status === 'not started' ||
+            status === 'ended' ||
+            status === 'ping pong'
+        "
         class="bar-button"
         ><md-icon>pan_tool</md-icon>
         <div>RAISE HAND</div></md-button
@@ -672,6 +676,9 @@ span.md-title {
 
 .md-content li:first-child {
   margin: 4px 0 10px;
+  border: none;
+  box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.2), 0 4px 5px 0 rgba(0, 0, 0, 0.14),
+    0 1px 10px 0 rgba(0, 0, 0, 0.12);
 }
 
 .md-content li {
