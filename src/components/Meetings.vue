@@ -189,7 +189,10 @@
         :disabled="
           status === 'not started' ||
             status === 'ended' ||
-            status === 'ping pong'
+            status === 'ping pong' ||
+            status === 'check in' ||
+            status === 'check out' ||
+            status === 'random'
         "
         class="bar-button"
         ><md-icon>pan_tool</md-icon>
@@ -197,21 +200,37 @@
       >
       <md-button
         @click="interject(TESTER);"
-        :disabled="status === 'not started' || status === 'ended'"
+        :disabled="
+          status === 'not started' ||
+            status === 'ended' ||
+            status === 'check in' ||
+            status === 'check out' ||
+            status === 'random'
+        "
         class="bar-button"
         ><md-icon>warning</md-icon>
         <div>INTERJECT</div></md-button
       >
       <md-button
         @click="on_topic(TESTER);"
-        :disabled="status === 'not started' || status === 'ended'"
+        :disabled="
+          status === 'not started' ||
+            status === 'ended' ||
+            status === 'check in' ||
+            status === 'check out'
+        "
         class="bar-button"
         ><md-icon>mood</md-icon>
         <div>ON TOPIC</div></md-button
       >
       <md-button
         @click="off_topic(TESTER);"
-        :disabled="status === 'not started' || status === 'ended'"
+        :disabled="
+          status === 'not started' ||
+            status === 'ended' ||
+            status === 'check in' ||
+            status === 'check out'
+        "
         class="bar-button"
         ><md-icon>mood_bad</md-icon>
         <div>OFF TOPIC</div></md-button
@@ -763,7 +782,7 @@ span.md-title {
 }
 
 .bar-button:disabled {
-  background-color: #ccc !important;
+  background-color: #eee !important;
   border: 1px solid white;
   cursor: not-allowed;
 }
