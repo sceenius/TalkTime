@@ -67,13 +67,19 @@
       <!-- img src="https://diglife.com/brand/logo_primary.svg" / -->
       <span class="md-title"> <md-icon>timelapse</md-icon> TALK TIME</span>
       <md-chip
-        v-if="status == 'on air'"
+        v-if="
+          status === 'on air' ||
+            status === 'check in' ||
+            status === 'check out' ||
+            status === 'random' ||
+            status === 'ping pong'
+        "
         style="background-color: #e64d3d !important;"
         >{{ status }}</md-chip
       >
       <md-chip
         v-else
-        style="background-color: rgba(255, 255, 255, 0.4) !important;"
+        style="background-color: rgba(255, 255, 255, 0.5) !important;"
         >{{ status }}</md-chip
       >
       <div style="position: absolute; right: 0px">
@@ -291,10 +297,17 @@ export default {
   ///////////////////////////////////////////////////////////////////////////////
   created: function() {
     let meetingsRef = db.database().ref("meetings/test/attendees");
+    this.mood = 0;
 
     meetingsRef.on("child_added", user => {
       let data = user.val();
-      //console.log(data);
+
+      // compute mood
+      if (data.mood === "mood_bad") {
+        this.mood--;
+      } else {
+        this.mood++;
+      }
       // add  data to users array
       this.attendees.push(data);
       this.attendees.sort(SortByName);
@@ -303,22 +316,13 @@ export default {
     function SortByName(x, y) {
       return x.status === y.status ? 0 : x.status > y.status ? 1 : -1;
     }
-
-    // compute the signal
-    this.mood = 0;
-    this.attendees.forEach((person, index, arr) => {
-      if (person.mood === "mood_bad") {
-        this.mood--;
-      } else {
-        this.mood++;
-      }
-    });
   },
 
   mounted: function() {},
 
   computed: {
     signal_bar: function() {
+      console.log("-----", this.mood);
       let path = "https://ledger.diglife.coop/images/icons/";
       if (this.mood / (this.attendees.length - 1) <= 0) {
         return path + "signal_0_bar.png";
@@ -418,6 +422,7 @@ export default {
 
     // ALL ATTENDEES = WAITING
     check_in: function(meeting) {
+      this.status = "check in";
       this.attendees.forEach((person, index, arr) => {
         //console.log(person);
         if (person.name !== "click to continue...") {
@@ -433,6 +438,7 @@ export default {
 
     // ALL ATTENDEES WAITING IN REVERSE ORDER
     check_out: function(meeting) {
+      this.status = "check out";
       this.attendees.forEach((person, index, arr) => {
         //console.log(person);
         if (person.name !== "click to continue...") {
@@ -449,6 +455,7 @@ export default {
 
     // ALL ATTENDEES WAITING IN RANDOM ORDER
     random_round: function(meeting) {
+      this.status = "random";
       this.attendees.forEach((person, index, arr) => {
         //console.log(person);
         if (person.name !== "click to continue...") {
@@ -468,6 +475,7 @@ export default {
 
     // ALL ATTENDEES CAN CALL ANYTIME
     ping_pong: function(meeting) {
+      this.status = "ping pong";
       this.attendees.forEach((person, index, arr) => {
         //console.log(person);
         if (person.name !== "click to continue...") {
