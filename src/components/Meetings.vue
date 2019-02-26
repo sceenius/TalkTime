@@ -107,12 +107,10 @@
               <span>Check-out</span>
             </md-menu-item>
 
-            <!--
-              md-menu-item @click="round_robin();">
-                <md-icon>update</md-icon>
-                <span>Round Robin</span>
-              </md-menu-item
-            -->
+            <md-menu-item @click="ping_pong();">
+              <md-icon>update</md-icon>
+              <span>Ping Pong</span>
+            </md-menu-item>
 
             <md-menu-item @click="random_round();">
               <md-icon>update</md-icon>
@@ -215,6 +213,7 @@
 
 <script>
 import Moment from "moment";
+import db from "../firebase/init.js";
 export default {
   name: "Meetings",
   props: { msg: String },
@@ -238,15 +237,9 @@ export default {
     mood: 0,
     battery: 1,
     meeting: { duration: 600 },
+    users: [],
     attendees: [
-      { name: "click to continue...", status: "0 standing_by", talk_time: 0 },
-      { name: "joshua", status: "3 waiting", talk_time: 0 },
-      { name: "klaus", status: "3 waiting", talk_time: 0 },
-      { name: "sam", status: "3 waiting", talk_time: 0 },
-      { name: "tammy", status: "4 listening", talk_time: 0 },
-      { name: "colin", status: "4 listening", talk_time: 0 },
-      { name: "heiner", status: "4 listening", talk_time: 0 },
-      { name: "heidi", status: "4 listening", talk_time: 0 }
+      { name: "click to continue...", status: "0 standing_by", talk_time: 0 }
     ],
     icon: {
       standing_by: "access_time", // #0
@@ -254,15 +247,19 @@ export default {
       interjecting: "warning", // #2
       waiting: "pan_tool", // #3
       listening: "check_box_outline_blank", // #4
-      completing: "check_box" // #5
+      racing: "warning", // #5
+      hiding: "", // #6
+      completing: "check_box" // #7
     },
     color: {
-      standing_by: "#e5c62e", // #0
-      talking: "#2ccd70", // #1
-      interjecting: "#e64d3d", // #2
-      waiting: "#3598db", // #3
-      listening: "#ccc", // #4
-      completing: "#ccc" // #5
+      standing_by: "#e5c62e",
+      talking: "#2ccd70",
+      interjecting: "#e64d3d",
+      waiting: "#3598db",
+      listening: "#ccc",
+      racing: "#e5c62e",
+      hiding: "",
+      completing: "#ccc"
     },
     cursor: {
       standing_by: "pointer",
@@ -270,6 +267,8 @@ export default {
       interjecting: "default",
       waiting: "default",
       listening: "default",
+      racing: "default",
+      hiding: "",
       completing: "default"
     }
     // colors: [
@@ -290,7 +289,21 @@ export default {
   ///////////////////////////////////////////////////////////////////////////////
   //  CREATED - https://vuejs.org/v2/guide/instance.html
   ///////////////////////////////////////////////////////////////////////////////
-  mounted: function() {
+  created: function() {
+    let meetingsRef = db.database().ref("meetings/test/attendees");
+
+    meetingsRef.on("child_added", user => {
+      let data = user.val();
+      //console.log(data);
+      // add  data to users array
+      this.attendees.push(data);
+      this.attendees.sort(SortByName);
+    });
+
+    function SortByName(x, y) {
+      return x.status === y.status ? 0 : x.status > y.status ? 1 : -1;
+    }
+
     // compute the signal
     this.mood = 0;
     this.attendees.forEach((person, index, arr) => {
@@ -302,10 +315,12 @@ export default {
     });
   },
 
+  mounted: function() {},
+
   computed: {
     signal_bar: function() {
       let path = "https://ledger.diglife.coop/images/icons/";
-      if (this.mood / this.attendees.length <= 0) {
+      if (this.mood / (this.attendees.length - 1) <= 0) {
         return path + "signal_0_bar.png";
       } else if (this.mood / (this.attendees.length - 1) <= 0.3) {
         return path + "signal_1_bar.png";
@@ -351,11 +366,17 @@ export default {
 
     // MOST IMPORTANT FUNCTION - "I AM COMPLETE"
     complete: function(person) {
+      let meetingsRef = db.database().ref("meetings/test/attendees");
+
       if (person.status.substring(2) === "standing_by") {
         person.status = "6 invisible";
+      } else if (this.attendees[1].status.substring(2) === "racing") {
+        person.talk_time = person.talk_time + this.time;
+        person.status = "5 racing";
       } else {
         person.talk_time = person.talk_time + this.time;
-        person.status = "5 completing";
+        person.status = "7 completing";
+        //meetingsRef.child(person.name).update(person);
       }
       this.attendees.sort(
         (a, b) => (a.status > b.status) - (a.status < b.status)
@@ -369,6 +390,7 @@ export default {
       ) {
         this.attendees[0].status = "1 talking";
         this.attendees[0].started = new Date().getTime();
+        // push to FB, set timer in child_changed
         this.time = 0;
         clearInterval(this.timer);
         this.timer = setInterval(() => {
@@ -444,6 +466,19 @@ export default {
       this.showSnackBar = true;
     },
 
+    // ALL ATTENDEES CAN CALL ANYTIME
+    ping_pong: function(meeting) {
+      this.attendees.forEach((person, index, arr) => {
+        //console.log(person);
+        if (person.name !== "click to continue...") {
+          person.status = "5 racing";
+        }
+      });
+
+      this.snack = "Ready for ping pong.";
+      this.showSnackBar = true;
+    },
+
     // CLEAR ALL ATTENDEE STATUS, BUT NOT TIME
     clear: function(meeting) {
       this.attendees.forEach((person, index, arr) => {
@@ -499,8 +534,16 @@ export default {
       if (this.attendees[0].name !== this.TESTER) {
         this.attendees.forEach((person, index, arr) => {
           //console.log(person);
-          if (person.name === name) {
+          if (person.name === name && person.status.substring(2) !== "racing") {
             person.status = "2 interjecting";
+          } else if (
+            person.name === name &&
+            person.status.substring(2) === "racing"
+          ) {
+            person.status = "1 talking";
+            if (this.attendees[0].status.substring(2) === "standing_by") {
+              this.attendees[0].status = "6 invisible";
+            }
           }
         });
         this.attendees.sort(
@@ -522,7 +565,7 @@ export default {
 
       // move current talker away
       if (this.attendees[0].status.substring(2) === "talking") {
-        this.attendees[0].status = "5 completing";
+        this.attendees[0].status = "7 completing";
       }
 
       this.attendees.sort(
