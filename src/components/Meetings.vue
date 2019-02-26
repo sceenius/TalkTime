@@ -418,6 +418,7 @@ export default {
           //console.log(person);
           if (person.status.substring(2) === "invisible") {
             arr[index].status = "0 standing_by";
+            arr[index].name = "waiting for input...";
             arr.sort((a, b) => (a.status > b.status) - (a.status < b.status));
           }
         });
@@ -429,7 +430,7 @@ export default {
       this.status = "check in";
       this.attendees.forEach((person, index, arr) => {
         //console.log(person);
-        if (person.name !== "click to continue...") {
+        if (person.status.substring(2) !== "standing_by") {
           person.status = "3 waiting";
         }
       });
@@ -445,7 +446,7 @@ export default {
       this.status = "check out";
       this.attendees.forEach((person, index, arr) => {
         //console.log(person);
-        if (person.name !== "click to continue...") {
+        if (person.status.substring(2) !== "standing_by") {
           person.status = "3 waiting";
         }
       });
@@ -462,7 +463,7 @@ export default {
       this.status = "random";
       this.attendees.forEach((person, index, arr) => {
         //console.log(person);
-        if (person.name !== "click to continue...") {
+        if (person.status.substring(2) !== "standing_by") {
           person.status = "3 waiting";
         }
       });
@@ -482,7 +483,7 @@ export default {
       this.status = "ping pong";
       this.attendees.forEach((person, index, arr) => {
         //console.log(person);
-        if (person.name !== "click to continue...") {
+        if (person.status.substring(2) !== "standing_by") {
           person.status = "5 racing";
         }
       });
@@ -495,7 +496,7 @@ export default {
     clear: function(meeting) {
       this.attendees.forEach((person, index, arr) => {
         //console.log(person);
-        if (person.name !== "click to continue...") {
+        if (person.status.substring(2) !== "standing_by") {
           person.status = "4 listening";
         }
         if (person.status.substring(2) === "invisible") {
