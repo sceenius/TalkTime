@@ -458,14 +458,45 @@ export default {
       }
 
       ///////////////////////////////////////////////////////////////////
-      // STATUS CHANGE CASE  - PERSON IS LISTENING
+      // MOOD CHANGE CASE  - PERSON IS ON TOPIC
       ///////////////////////////////////////////////////////////////////
-      if (data.mood === "listening") {
-        // find person and change status
+      this.mood = 0;
+      if (data.mood === "mood") {
         this.attendees.forEach((person, index, arr) => {
-          //console.log(person);
           if (person.name === data.name) {
-            person.status = "4 listening";
+            person.mood = "mood";
+            clearInterval(person.mood_timer);
+            person.mood_timer = setInterval(() => {
+              person.mood = "";
+              this.mood--;
+              clearInterval(person.mood_timer);
+            }, 10000);
+          }
+          if (person.mood === "mood_bad") {
+            this.mood--;
+          } else {
+            this.mood++;
+          }
+        });
+      }
+      ///////////////////////////////////////////////////////////////////
+      // MOOD CHANGE CASE  - PERSON IS OFF TOPIC
+      ///////////////////////////////////////////////////////////////////
+      else if (data.mood === "mood_bad") {
+        this.attendees.forEach((person, index, arr) => {
+          if (person.name === data.name) {
+            person.mood = "mood_bad";
+            clearInterval(person.mood_timer);
+            person.mood_timer = setInterval(() => {
+              person.mood = "";
+              this.mood++;
+              clearInterval(person.mood_timer);
+            }, 10000);
+          }
+          if (person.mood === "mood_bad") {
+            this.mood--;
+          } else {
+            this.mood++;
           }
         });
       }
@@ -750,22 +781,12 @@ export default {
 
     // AGREE WITH TOPIC
     on_topic: function(name) {
-      this.mood = 0;
+      let attendeesRef = db.database().ref("meetings/test/attendees");
+
       this.attendees.forEach((person, index, arr) => {
         //if found, set mood and clear after 1 min
         if (person.name === name) {
-          person.mood = "mood";
-          clearInterval(person.mood_timer);
-          person.mood_timer = setInterval(() => {
-            person.mood = "";
-            this.mood--;
-            clearInterval(person.mood_timer);
-          }, 60000);
-        }
-        if (person.mood === "mood_bad") {
-          this.mood--;
-        } else {
-          this.mood++;
+          attendeesRef.child(person.name).update({ mood: "mood" });
         }
       });
       this.snack = "Your mood has been registered.";
@@ -774,24 +795,12 @@ export default {
 
     // DISAGREE WITH TOPIC
     off_topic: function(name) {
-      this.mood = 0;
+      let attendeesRef = db.database().ref("meetings/test/attendees");
+
       this.attendees.forEach((person, index, arr) => {
         //if found, set mood and clear after 1 min
-
         if (person.name === name) {
-          person.mood = "mood_bad";
-          clearInterval(person.mood_timer);
-          person.mood_timer = setInterval(() => {
-            person.mood = "";
-            this.mood++;
-            clearInterval(person.mood_timer);
-          }, 10000);
-        }
-
-        if (person.mood === "mood_bad") {
-          this.mood--;
-        } else {
-          this.mood++;
+          attendeesRef.child(person.name).update({ mood: "mood_bad" });
         }
       });
       this.snack = "Your mood has been registered.";
