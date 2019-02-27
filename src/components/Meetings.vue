@@ -341,6 +341,7 @@ export default {
     this.mood = 0;
     attendeesRef.on("child_added", user => {
       let data = user.val();
+      let key = user.key;
 
       ///////////////////////////////////////////////////////////////////
       // CASES TO ADJUST DATA - PERSON IS TALKING
@@ -371,10 +372,10 @@ export default {
 
     attendeesRef.on("child_changed", user => {
       let data = user.val();
-      console.log(data);
+      let key = user.key;
 
       ///////////////////////////////////////////////////////////////////
-      // CASES TO ADJUST DATA - PERSON IS TALKING
+      // STATUS CHANGE CASE - PERSON IS TALKING
       ///////////////////////////////////////////////////////////////////
       if (data.status.substring(2) === "talking") {
         // move standing_by away
@@ -390,20 +391,45 @@ export default {
       }
 
       ///////////////////////////////////////////////////////////////////
-      // CASES TO ADJUST DATA - PERSON IS LISTENING
+      // STATUS CHANGE CASE  - PERSON IS LISTENING
       ///////////////////////////////////////////////////////////////////
-      else if (data.status.substring(2) === "listening") {
+      else if (
+        data.status.substring(2) === "listening" &&
+        this.status !== "clear out"
+      ) {
         // find person and change status
         this.attendees.forEach((person, index, arr) => {
           //console.log(person);
           if (person.name === data.name) {
             person.status = "4 listening";
           }
+
+          if (person.status.substring(2) === "invisible") {
+            person.status = "0 standing_by";
+          }
         });
       }
 
       ///////////////////////////////////////////////////////////////////
-      // CASES TO ADJUST DATA - PERSON IS WAITING
+      // STATUS CHANGE CASE  - CLEAR
+      ///////////////////////////////////////////////////////////////////
+      else if (
+        data.status.substring(2) === "listening" &&
+        this.status === "clear out"
+      ) {
+        // find person and change status
+        this.attendees.forEach((person, index, arr) => {
+          if (person.status.substring(2) === "invisible") {
+            person.status = "0 standing_by";
+          } else if (person.status.substring(2) !== "standing_by") {
+            person.status = "4 listening";
+          }
+        });
+        this.status = "on air";
+      }
+
+      ///////////////////////////////////////////////////////////////////
+      // STATUS CHANGE CASE  - PERSON IS WAITING
       ///////////////////////////////////////////////////////////////////
       else if (data.status.substring(2) === "waiting") {
         // find person and change status
@@ -416,7 +442,7 @@ export default {
       }
 
       ///////////////////////////////////////////////////////////////////
-      // CASES TO ADJUST DATA - PERSON IS INTERJECTING
+      // STATUS CHANGE CASE  - PERSON IS INTERJECTING
       ///////////////////////////////////////////////////////////////////
       else if (data.status.substring(2) === "interjecting") {
         // find person and change status
@@ -431,7 +457,23 @@ export default {
         });
       }
 
+      ///////////////////////////////////////////////////////////////////
+      // STATUS CHANGE CASE  - PERSON IS LISTENING
+      ///////////////////////////////////////////////////////////////////
+      if (data.mood === "listening") {
+        // find person and change status
+        this.attendees.forEach((person, index, arr) => {
+          //console.log(person);
+          if (person.name === data.name) {
+            person.status = "4 listening";
+          }
+        });
+      }
+
       // always sort at the end
+      if (this.status === "check out") {
+        this.attendees.reverse();
+      }
       this.attendees.sort(SortByName);
     });
 
@@ -544,33 +586,35 @@ export default {
 
     // ALL ATTENDEES = WAITING
     check_in: function(meeting) {
-      this.status = "check in";
+      let attendeesRef = db.database().ref("meetings/test/attendees");
+      let meetingsRef = db.database().ref("meetings/test/parameters");
+      meetingsRef.update({ status: "check in" });
+
       this.attendees.forEach((person, index, arr) => {
         //console.log(person);
         if (person.status.substring(2) !== "standing_by") {
-          person.status = "3 waiting";
+          attendeesRef.child(person.name).update({ status: "3 waiting" });
+          // person.status = "3 waiting";
         }
       });
-      this.attendees.sort(
-        (a, b) => (a.status > b.status) - (a.status < b.status)
-      );
+
       this.snack = "Ready for checking in.";
       this.showSnackBar = true;
     },
 
     // ALL ATTENDEES WAITING IN REVERSE ORDER
     check_out: function(meeting) {
-      this.status = "check out";
+      let attendeesRef = db.database().ref("meetings/test/attendees");
+      let meetingsRef = db.database().ref("meetings/test/parameters");
+      meetingsRef.update({ status: "check out" });
+
       this.attendees.forEach((person, index, arr) => {
         //console.log(person);
         if (person.status.substring(2) !== "standing_by") {
-          person.status = "3 waiting";
+          attendeesRef.child(person.name).update({ status: "3 waiting" });
         }
       });
-      this.attendees.reverse();
-      this.attendees.sort(
-        (a, b) => (a.status > b.status) - (a.status < b.status)
-      );
+
       this.snack = "Ready for checking in.";
       this.showSnackBar = true;
     },
@@ -611,18 +655,17 @@ export default {
 
     // CLEAR ALL ATTENDEE STATUS, BUT NOT TIME
     clear: function(meeting) {
+      let attendeesRef = db.database().ref("meetings/test/attendees");
+      let meetingsRef = db.database().ref("meetings/test/parameters");
+      meetingsRef.update({ status: "clear out" });
+
       this.attendees.forEach((person, index, arr) => {
         //console.log(person);
         if (person.status.substring(2) !== "standing_by") {
-          person.status = "4 listening";
-        }
-        if (person.status.substring(2) === "invisible") {
-          person.status = "0 standing_by";
+          attendeesRef.child(person.name).update({ status: "4 listening" });
         }
       });
-      this.attendees.sort(
-        (a, b) => (a.status > b.status) - (a.status < b.status)
-      );
+
       this.snack = "Ready for checking in.";
       this.showSnackBar = true;
     },
