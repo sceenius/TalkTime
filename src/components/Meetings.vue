@@ -23,34 +23,44 @@
     -->
     <!--
       ----------------------------------------------------------------------
-        DIALOG BOXES - TOPICS DIALOG
+        DIALOG BOXES - LOGIN DIALOG
       ----------------------------------------------------------------------
     -->
-    <md-dialog :md-active.sync="activeDialog">
-      <md-dialog-title>Add Topic</md-dialog-title>
-      <div style="padding: 20px;">
-        <md-field>
-          <label>Topic</label>
-          <md-input v-model="topic"></md-input>
-          <span class="md-helper-text">Enter a topic</span>
-        </md-field>
-      </div>
-      <md-button type="submit" class="md-primary">Add Topic</md-button>
-    </md-dialog>
-
-    <!--
-      md-button
-        v-if="!activeDialog"
-        @click="
-          activeDialog = true;
-          add_topic();
-        "
-        class="md-fab md-primary"
-        style="background-color:#e91e63; position: absolute; bottom: 90px; right: 10px; z-index: 99"
+    <md-dialog
+      :md-close-on-esc="false"
+      :md-click-outside-to-close="false"
+      :md-active.sync="activeUser"
+      style="max-width: 400px; max-height: 350px !important;"
+    >
+      <md-dialog-title
+        ><md-icon>timelapse</md-icon> Welcome to Talk Time!</md-dialog-title
       >
-        <md-icon>add</md-icon>
-      </md-button
-    -->
+      <div style="padding: 0 25px ;">
+        This app is best used on a mobile phone. To get started, please enter
+        your username.<br /><br />
+        <md-field id="username">
+          <label>Username</label>
+          <md-input
+            v-model="username"
+            @keyup.prevent.esc="onConfirm();"
+            @keyup.enter="onConfirm();"
+            required
+          ></md-input>
+          <span class="md-helper-text"></span>
+          <span class="md-error">Please enter a username.</span>
+          <md-icon>person</md-icon>
+        </md-field>
+        <md-dialog-actions style="padding: 25px 0;">
+          <md-button
+            class="md-success md-raised"
+            @click="onConfirm();"
+            style="background: #00B0A0; color: white;"
+            ><md-icon style="color: white;">exit_to_app</md-icon>
+            Enter</md-button
+          >
+        </md-dialog-actions>
+      </div>
+    </md-dialog>
 
     <!--
       ----------------------------------------------------------------------
@@ -103,6 +113,11 @@
               <span>End Meeting</span>
             </md-menu-item>
 
+            <md-menu-item @click="settings();">
+              <md-icon>settings_power</md-icon>
+              <span>Settings</span>
+            </md-menu-item>
+
             <md-menu-item @click="check_in();">
               <md-icon>update</md-icon>
               <span>Check-in</span>
@@ -110,7 +125,7 @@
 
             <md-menu-item @click="check_out();">
               <md-icon>update</md-icon>
-              <span>Check-out</span>
+              <span>Reverse-out</span>
             </md-menu-item>
 
             <md-menu-item @click="ping_pong();">
@@ -118,13 +133,9 @@
               <span>Ping Pong</span>
             </md-menu-item>
 
-            <md-menu-item @click="random_round();">
-              <md-icon>update</md-icon>
-              <span>Random Round</span>
-            </md-menu-item>
             <md-menu-item @click="clear();">
               <md-icon>check_box_outline_blank</md-icon>
-              <span>Clear</span>
+              <span>Clear Out</span>
             </md-menu-item>
           </md-menu-content>
         </md-menu>
@@ -185,7 +196,7 @@
 
     <div class="bottom-bar">
       <md-button
-        @click="raise_hand(TESTER);"
+        @click="raise_hand(username);"
         :disabled="
           status === 'not started' ||
             status === 'ended' ||
@@ -199,7 +210,7 @@
         <div>RAISE HAND</div></md-button
       >
       <md-button
-        @click="interject(TESTER);"
+        @click="interject(username);"
         :disabled="
           status === 'not started' ||
             status === 'ended' ||
@@ -212,10 +223,11 @@
         <div>INTERJECT</div></md-button
       >
       <md-button
-        @click="on_topic(TESTER);"
+        @click="on_topic(username);"
         :disabled="
           status === 'not started' ||
             status === 'ended' ||
+            status === 'ping pong' ||
             status === 'check in' ||
             status === 'check out'
         "
@@ -224,10 +236,11 @@
         <div>ON TOPIC</div></md-button
       >
       <md-button
-        @click="off_topic(TESTER);"
+        @click="off_topic(username);"
         :disabled="
           status === 'not started' ||
             status === 'ended' ||
+            status === 'ping pong' ||
             status === 'check in' ||
             status === 'check out'
         "
@@ -254,7 +267,7 @@ export default {
     showSidepanel: false,
     showServices: false,
     showSnackBar: false,
-    activeDialog: false,
+    activeUser: false,
     power: false,
     snack: "",
     status: "not started",
@@ -262,13 +275,14 @@ export default {
     topic: "",
     time: 0,
     timer: null,
-    TESTER: "colin",
+    failed: false,
+    username: "",
     mood: 0,
     battery: 1,
     meeting: { duration: 600 },
     users: [],
     attendees: [
-      { name: "click to continue...", status: "0 standing_by", talk_time: 0 }
+      { name: "waiting for input...", status: "0 standing_by", talk_time: 0 }
     ],
     icon: {
       standing_by: "access_time", // #0
@@ -339,6 +353,9 @@ export default {
     });
 
     this.mood = 0;
+    ///////////////////////////////////////////////////////////////////
+    // FIREBASE CHILD ADDED EVENTS
+    ///////////////////////////////////////////////////////////////////
     attendeesRef.on("child_added", user => {
       let data = user.val();
       let key = user.key;
@@ -370,9 +387,12 @@ export default {
       this.attendees.sort(SortByName);
     });
 
+    ///////////////////////////////////////////////////////////////////
+    // FIREBASE CHILD CHANGED EVENTS
+    ///////////////////////////////////////////////////////////////////
+
     attendeesRef.on("child_changed", user => {
       let data = user.val();
-      let key = user.key;
 
       ///////////////////////////////////////////////////////////////////
       // STATUS CHANGE CASE - PERSON IS TALKING
@@ -383,9 +403,25 @@ export default {
           this.attendees[0].status = "6 invisible";
         }
         // move current talker away
-        else if (this.attendees[0].status.substring(2) === "talking") {
+        else if (
+          this.attendees[0].status.substring(2) === "talking" &&
+          this.status !== "ping pong"
+        ) {
           this.attendees[0].status = "7 completing";
           attendeesRef.child(this.attendees[0].name).update(this.attendees[0]);
+        }
+        // revert current talker - was not fast enough
+        else if (
+          this.attendees[0].status.substring(2) === "talking" &&
+          this.status === "ping pong"
+        ) {
+          this.attendees.forEach((person, index, arr) => {
+            if (person.name === data.name) {
+              person.status = "5 racing";
+              console.log("-----", person);
+              attendeesRef.child(person.name).update({ status: "5 racing" });
+            }
+          });
         }
 
         // if (this.status === "ping pong") {
@@ -399,7 +435,7 @@ export default {
             clearInterval(this.timer);
             this.timer = setInterval(() => {
               this.time++;
-              if (this.attendees[0].name === this.TESTER) {
+              if (this.attendees[0].name === this.username) {
                 this.battery =
                   1 -
                   (this.time + person.talk_time) /
@@ -460,7 +496,10 @@ export default {
         this.attendees.forEach((person, index, arr) => {
           if (person.status.substring(2) === "invisible") {
             person.status = "0 standing_by";
-          } else if (person.status.substring(2) !== "standing_by") {
+          } else if (
+            person.status.substring(2) !== "standing_by" &&
+            person.status.substring(2) !== "talking"
+          ) {
             person.status = "5 racing";
             person.talk_time = data.talk_time;
           }
@@ -472,6 +511,10 @@ export default {
       // STATUS CHANGE CASE  - PERSON IS WAITING
       ///////////////////////////////////////////////////////////////////
       else if (data.status.substring(2) === "waiting") {
+        if (this.attendees[0].status.substring(2) === "standing_by") {
+          this.attendees[0].name = "click to continue...";
+        }
+
         // find person and change status
         this.attendees.forEach((person, index, arr) => {
           //console.log(person);
@@ -499,6 +542,10 @@ export default {
       // STATUS CHANGE CASE  - PERSON IS INTERJECTING
       ///////////////////////////////////////////////////////////////////
       else if (data.status.substring(2) === "interjecting") {
+        if (this.attendees[0].status.substring(2) === "standing_by") {
+          this.attendees[0].name = "click to continue...";
+        }
+
         // find person and change status
         this.attendees.forEach((person, index, arr) => {
           //console.log(person);
@@ -569,7 +616,9 @@ export default {
     }
   },
 
-  mounted: function() {},
+  mounted: function() {
+    this.activeUser = true;
+  },
 
   computed: {
     signal_bar: function() {
@@ -618,6 +667,35 @@ export default {
         .format("mm:ss");
     },
 
+    onConfirm: function() {
+      let attendeesRef = db.database().ref("meetings/test/attendees");
+      if (!this.username) {
+        this.activeUser = true;
+        document.getElementById("username").classList.add("md-invalid");
+      } else {
+        document.getElementById("username").classList.remove("md-invalid");
+        this.username = this.username.replace("@", "").toLowerCase();
+        // cookies are not stored on mobile devices, new prommpt for every session
+        //this.$cookies.set("username", this.username);
+
+        // load personal profile from users
+        this.profile = this.attendees.find(user => {
+          return user.name === this.username;
+        });
+        if (this.profile === undefined) {
+          attendeesRef.child(this.username).update({
+            name: this.username,
+            status: "4 listening",
+            talk_time: 1
+          });
+        }
+
+        this.$nextTick(function() {
+          this.activeUser = false;
+        });
+      }
+    },
+
     // MOST IMPORTANT FUNCTION - "I AM COMPLETE"
     complete: function(person) {
       let attendeesRef = db.database().ref("meetings/test/attendees");
@@ -659,7 +737,7 @@ export default {
         // clearInterval(this.timer);
         // this.timer = setInterval(() => {
         //   this.time++;
-        //   if (this.attendees[0].name === this.TESTER) {
+        //   if (this.attendees[0].name === this.username) {
         //     this.battery =
         //       1 -
         //       (this.time + this.attendees[0].talk_time) /
@@ -707,6 +785,7 @@ export default {
       this.attendees.forEach((person, index, arr) => {
         //console.log(person);
         if (person.status.substring(2) !== "standing_by") {
+          attendeesRef.child(person.name).update({ status: "4 listening" });
           attendeesRef.child(person.name).update({ status: "3 waiting" });
         }
       });
@@ -789,7 +868,7 @@ export default {
     raise_hand: function(name) {
       let attendeesRef = db.database().ref("meetings/test/attendees");
 
-      if (this.attendees[0].name !== this.TESTER) {
+      if (this.attendees[0].name !== this.username) {
         this.attendees.forEach((person, index, arr) => {
           //console.log(person);
           if (person.name === name) {
@@ -806,7 +885,7 @@ export default {
     interject: function(name) {
       let attendeesRef = db.database().ref("meetings/test/attendees");
 
-      if (this.attendees[0].name !== this.TESTER) {
+      if (this.attendees[0].name !== this.username) {
         this.attendees.forEach((person, index, arr) => {
           //console.log(person);
           // non-racing case
@@ -818,7 +897,23 @@ export default {
             person.name === name &&
             person.status.substring(2) === "racing"
           ) {
-            attendeesRef.child(person.name).update({ status: "1 talking" });
+            this.failed = false;
+            attendeesRef
+              .once("value", attendees => {
+                attendees.forEach(snapshot => {
+                  let data = snapshot.val();
+                  if (data.status.substring(2) === "talking") {
+                    this.failed = true;
+                  }
+                });
+              })
+              .then(
+                this.failed
+                  ? null
+                  : attendeesRef
+                      .child(person.name)
+                      .update({ status: "1 talking" })
+              );
           }
         });
 
@@ -971,7 +1066,7 @@ span.md-title {
   margin: 0px;
 }
 
-.md-button div {
+.bar-button.md-button div {
   margin: 0 0 -10px 0;
 }
 
@@ -985,7 +1080,6 @@ span.md-title {
   position: absolute;
   bottom: 0px;
   width: 100%;
-  z-index: 99;
 }
 
 .bar-button:disabled {
