@@ -382,12 +382,33 @@ export default {
         if (this.attendees[0].status.substring(2) === "standing_by") {
           this.attendees[0].status = "6 invisible";
         }
-
         // move current talker away
         else if (this.attendees[0].status.substring(2) === "talking") {
           this.attendees[0].status = "7 completing";
           attendeesRef.child(this.attendees[0].name).update(this.attendees[0]);
         }
+
+        // if (this.status === "ping pong") {
+        // find person and change status
+        this.attendees.forEach((person, index, arr) => {
+          if (person.name === data.name) {
+            person.status = data.status;
+            person.started = new Date().getTime();
+            // push to FB, set timer in child_changed
+            this.time = 0;
+            clearInterval(this.timer);
+            this.timer = setInterval(() => {
+              this.time++;
+              if (this.attendees[0].name === this.TESTER) {
+                this.battery =
+                  1 -
+                  (this.time + person.talk_time) /
+                    ((this.meeting.duration / this.attendees.length) * 2);
+              }
+            }, 1000);
+          }
+        });
+        // }
       }
 
       ///////////////////////////////////////////////////////////////////
@@ -429,6 +450,25 @@ export default {
       }
 
       ///////////////////////////////////////////////////////////////////
+      // STATUS CHANGE CASE  - PING PONG
+      ///////////////////////////////////////////////////////////////////
+      else if (
+        data.status.substring(2) === "racing" &&
+        this.status === "ping pong"
+      ) {
+        // find person and change status
+        this.attendees.forEach((person, index, arr) => {
+          if (person.status.substring(2) === "invisible") {
+            person.status = "0 standing_by";
+          } else if (person.status.substring(2) !== "standing_by") {
+            person.status = "5 racing";
+            person.talk_time = data.talk_time;
+          }
+        });
+        this.status = "ping pong";
+      }
+
+      ///////////////////////////////////////////////////////////////////
       // STATUS CHANGE CASE  - PERSON IS WAITING
       ///////////////////////////////////////////////////////////////////
       else if (data.status.substring(2) === "waiting") {
@@ -437,6 +477,20 @@ export default {
           //console.log(person);
           if (person.name === data.name) {
             person.status = "3 waiting";
+          }
+        });
+      }
+
+      ///////////////////////////////////////////////////////////////////
+      // STATUS CHANGE CASE  - PERSON IS COMPLETING
+      ///////////////////////////////////////////////////////////////////
+      else if (data.status.substring(2) === "completing") {
+        // find person and change status
+        this.attendees.forEach((person, index, arr) => {
+          //console.log(person);
+          if (person.name === data.name) {
+            person.status = "7 completing";
+            person.talk_time = data.talk_time;
           }
         });
       }
@@ -467,15 +521,11 @@ export default {
             person.mood = "mood";
             clearInterval(person.mood_timer);
             person.mood_timer = setInterval(() => {
+              attendeesRef.child(person.name).update({ mood: "" });
               person.mood = "";
               this.mood--;
               clearInterval(person.mood_timer);
             }, 10000);
-          }
-          if (person.mood === "mood_bad") {
-            this.mood--;
-          } else {
-            this.mood++;
           }
         });
       }
@@ -488,18 +538,24 @@ export default {
             person.mood = "mood_bad";
             clearInterval(person.mood_timer);
             person.mood_timer = setInterval(() => {
+              attendeesRef.child(person.name).update({ mood: "" });
               person.mood = "";
               this.mood++;
               clearInterval(person.mood_timer);
             }, 10000);
           }
-          if (person.mood === "mood_bad") {
-            this.mood--;
-          } else {
-            this.mood++;
-          }
         });
       }
+      ///////////////////////////////////////////////////////////////////
+      // MOOD CHANGE CASE  - UPDATE OVERALL MOOD
+      ///////////////////////////////////////////////////////////////////
+      this.attendees.forEach((person, index, arr) => {
+        if (person.mood === "mood_bad") {
+          this.mood--;
+        } else {
+          this.mood++;
+        }
+      });
 
       // always sort at the end
       if (this.status === "check out") {
@@ -569,37 +625,47 @@ export default {
       if (person.status.substring(2) === "standing_by") {
         person.status = "6 invisible";
       } else if (this.attendees[1].status.substring(2) === "racing") {
-        person.talk_time = person.talk_time + this.time;
-        person.status = "5 racing";
+        // person.talk_time = person.talk_time + this.time;
+        // person.status = "5 racing";
+        attendeesRef.child(person.name).update({ status: "5 racing" });
+        attendeesRef
+          .child(person.name)
+          .update({ talk_time: person.talk_time + this.time });
       } else {
-        person.talk_time = person.talk_time + this.time;
-        person.status = "7 completing";
-        //attendeesRef.child(person.name).update(person);
+        // person.talk_time = person.talk_time + this.time;
+        // person.status = "7 completing";
+        attendeesRef.child(person.name).update({ status: "7 completing" });
+        attendeesRef
+          .child(person.name)
+          .update({ talk_time: person.talk_time + this.time });
       }
-      this.attendees.sort(
-        (a, b) => (a.status > b.status) - (a.status < b.status)
-      );
+      // this.attendees.sort(
+      //   (a, b) => (a.status > b.status) - (a.status < b.status)
+      // );
       //console.log(this.attendees);
 
       // CASE: next person is waiting to be called
       if (
-        this.attendees[0].status.substring(2) === "waiting" ||
-        this.attendees[0].status.substring(2) === "interjecting"
+        this.attendees[1].status.substring(2) === "waiting" ||
+        this.attendees[1].status.substring(2) === "interjecting"
       ) {
-        this.attendees[0].status = "1 talking";
-        this.attendees[0].started = new Date().getTime();
-        // push to FB, set timer in child_changed
-        this.time = 0;
-        clearInterval(this.timer);
-        this.timer = setInterval(() => {
-          this.time++;
-          if (this.attendees[0].name === this.TESTER) {
-            this.battery =
-              1 -
-              (this.time + this.attendees[0].talk_time) /
-                ((this.meeting.duration / this.attendees.length) * 2);
-          }
-        }, 1000);
+        attendeesRef
+          .child(this.attendees[1].name)
+          .update({ status: "1 talking" });
+        // this.attendees[0].status = "1 talking";
+        // this.attendees[0].started = new Date().getTime();
+        // // push to FB, set timer in child_changed
+        // this.time = 0;
+        // clearInterval(this.timer);
+        // this.timer = setInterval(() => {
+        //   this.time++;
+        //   if (this.attendees[0].name === this.TESTER) {
+        //     this.battery =
+        //       1 -
+        //       (this.time + this.attendees[0].talk_time) /
+        //         ((this.meeting.duration / this.attendees.length) * 2);
+        //   }
+        // }, 1000);
 
         // CASE: nobody is waiting to be called, put standing_by back
       } else {
@@ -625,7 +691,6 @@ export default {
         //console.log(person);
         if (person.status.substring(2) !== "standing_by") {
           attendeesRef.child(person.name).update({ status: "3 waiting" });
-          // person.status = "3 waiting";
         }
       });
 
@@ -672,11 +737,14 @@ export default {
 
     // ALL ATTENDEES CAN CALL ANYTIME
     ping_pong: function(meeting) {
-      this.status = "ping pong";
+      let attendeesRef = db.database().ref("meetings/test/attendees");
+      let meetingsRef = db.database().ref("meetings/test/parameters");
+      meetingsRef.update({ status: "ping pong" });
+
       this.attendees.forEach((person, index, arr) => {
         //console.log(person);
         if (person.status.substring(2) !== "standing_by") {
-          person.status = "5 racing";
+          attendeesRef.child(person.name).update({ status: "5 racing" });
         }
       });
 
