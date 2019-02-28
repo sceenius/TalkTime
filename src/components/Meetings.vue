@@ -42,6 +42,7 @@
         <md-field id="username">
           <label style=" color: white;">Username</label>
           <md-input
+            ref="focusable"
             v-model="username"
             @keyup.prevent.esc="onConfirm();"
             @keyup.enter="onConfirm();"
@@ -618,6 +619,9 @@ export default {
 
   mounted: function() {
     this.activeUser = true;
+    setTimeout(() => {
+      this.$refs.focusable.$el.focus();
+    }, 500);
   },
 
   computed: {
