@@ -385,7 +385,9 @@ export default {
       }
       // add  data to users array
       this.attendees.push(data);
-      this.attendees.sort(SortByName);
+      this.attendees.sort(function(a, b) {
+        return a["joined_at"] - b["joined_at"] || a["status"] - b["status"];
+      });
     });
 
     ///////////////////////////////////////////////////////////////////
@@ -609,7 +611,12 @@ export default {
       if (this.status === "check out") {
         this.attendees.reverse();
       }
-      this.attendees.sort(SortByName);
+      //this.attendees.sort(SortByName);
+      // this is a brilliant sort function working on 2 keys
+      // if the status is the same, it sorts by joined_at
+      this.attendees.sort(function(a, b) {
+        return a["joined_at"] - b["joined_at"] || a["status"] - b["status"];
+      });
     });
 
     function SortByName(x, y) {
@@ -690,7 +697,8 @@ export default {
           attendeesRef.child(this.username).update({
             name: this.username,
             status: "4 listening",
-            talk_time: 1
+            talk_time: 0,
+            joined_at: new Date().getTime()
           });
         }
 
