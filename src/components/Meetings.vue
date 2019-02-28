@@ -386,7 +386,10 @@ export default {
       // add  data to users array
       this.attendees.push(data);
       this.attendees.sort(function(a, b) {
-        return a["joined_at"] - b["joined_at"] || a["status"] - b["status"];
+        return (
+          parseInt(a.status.charAt(0)) - parseInt(b.status.charAt(0)) ||
+          a.joined_at - b.joined_at
+        );
       });
     });
 
@@ -615,7 +618,10 @@ export default {
       // this is a brilliant sort function working on 2 keys
       // if the status is the same, it sorts by joined_at
       this.attendees.sort(function(a, b) {
-        return a["joined_at"] - b["joined_at"] || a["status"] - b["status"];
+        return (
+          parseInt(a.status.charAt(0)) - parseInt(b.status.charAt(0)) ||
+          a.joined_at - b.joined_at
+        );
       });
     });
 
@@ -884,7 +890,9 @@ export default {
         this.attendees.forEach((person, index, arr) => {
           //console.log(person);
           if (person.name === name) {
-            attendeesRef.child(person.name).update({ status: "3 waiting" });
+            attendeesRef
+              .child(person.name)
+              .update({ status: "3 waiting", joined_at: new Date().getTime() });
           }
         });
 
@@ -904,7 +912,10 @@ export default {
           if (person.name === name && person.status.substring(2) !== "racing") {
             attendeesRef
               .child(person.name)
-              .update({ status: "2 interjecting" });
+              .update({
+                status: "2 interjecting",
+                joined_at: new Date().getTime()
+              });
           } else if (
             person.name === name &&
             person.status.substring(2) === "racing"
@@ -924,7 +935,10 @@ export default {
                   ? null
                   : attendeesRef
                       .child(person.name)
-                      .update({ status: "1 talking" })
+                      .update({
+                        status: "1 talking",
+                        joined_at: new Date().getTime()
+                      })
               );
           }
         });
