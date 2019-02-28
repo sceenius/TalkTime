@@ -1100,7 +1100,7 @@ span.md-title {
   width: 350 !important;
 
   background-image: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0)),
-    url("https://www.kemperart.org/sites/default/files/styles/colorbox_full/public/page-content/CafeSebastienne-KemperMuseum2018_Cafe-SQ.jpg?itok=p2UP9Ggi");
+    url("https://ledger.diglife.coop/images/talktime/talkTimeSplash.jpg");
   background-size: cover;
   background-position: center bottom;
   background-repeat: no-repeat;
