@@ -30,16 +30,17 @@
       :md-close-on-esc="false"
       :md-click-outside-to-close="false"
       :md-active.sync="activeUser"
-      style="max-width: 400px; max-height: 350px !important;"
+      id="login-dialog"
     >
       <md-dialog-title
-        ><md-icon>timelapse</md-icon> Welcome to Talk Time!</md-dialog-title
+        ><md-icon>timelapse</md-icon> Welcome to<br />&nbsp;&nbsp; &nbsp; &nbsp;
+        Talk Time!</md-dialog-title
       >
-      <div style="padding: 0 25px ;">
+      <div>
         This app is best used on a mobile phone. To get started, please enter
         your username.<br /><br />
         <md-field id="username">
-          <label>Username</label>
+          <label style=" color: white;">Username</label>
           <md-input
             v-model="username"
             @keyup.prevent.esc="onConfirm();"
@@ -48,9 +49,8 @@
           ></md-input>
           <span class="md-helper-text"></span>
           <span class="md-error">Please enter a username.</span>
-          <md-icon>person</md-icon>
         </md-field>
-        <md-dialog-actions style="padding: 25px 0;">
+        <md-dialog-actions style="padding: 55px 0;">
           <md-button
             class="md-success md-raised"
             @click="onConfirm();"
@@ -1086,5 +1086,52 @@ span.md-title {
   background-color: #eee !important;
   border: 1px solid white;
   cursor: not-allowed;
+}
+
+#login-dialog {
+  min-height: 500px !important;
+  max-height: 500px !important;
+  min-width: 350px;
+  max-width: 350px !important;
+  width: 350 !important;
+
+  background-image: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0)),
+    url("https://www.kemperart.org/sites/default/files/styles/colorbox_full/public/page-content/CafeSebastienne-KemperMuseum2018_Cafe-SQ.jpg?itok=p2UP9Ggi");
+  background-size: cover;
+  background-position: center bottom;
+  background-repeat: no-repeat;
+}
+
+#login-dialog .md-dialog-title {
+  color: white;
+  font-size: 2.4em !important;
+  font-weight: normal;
+  line-height: 0.9em !important;
+}
+
+#login-dialog .md-dialog-title .md-icon {
+  margin: -10px 40px 0 -20px !important;
+  color: white;
+  font-size: 3em !important;
+  font-weight: normal;
+}
+
+#login-dialog div {
+  max-width: 400px;
+  line-height: 1.2em !important;
+  padding: 0 25px;
+  color: white;
+  font-size: 1.2em;
+}
+
+#login-dialog .md-input,
+#login-dialog .md-field input,
+#login-dialog .md-field ::placeholder {
+  max-width: 500px;
+  width: 400px;
+  color: #fff !important;
+  font-size: 1.3em;
+  padding: 30px;
+  -webkit-text-fill-color: rgba(255, 255, 255, 1);
 }
 </style>
