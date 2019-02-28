@@ -51,7 +51,7 @@
           <span class="md-helper-text"></span>
           <span class="md-error">Please enter a username.</span>
         </md-field>
-        <md-dialog-actions style="padding: 55px 0;">
+        <md-dialog-actions>
           <md-button
             class="md-success md-raised"
             @click="onConfirm();"
@@ -1104,6 +1104,10 @@ span.md-title {
   background-size: cover;
   background-position: center bottom;
   background-repeat: no-repeat;
+}
+
+#login-dialog .md-dialog-actions {
+  padding: 130px 40px 0px 0px;
 }
 
 #login-dialog .md-dialog-title {
