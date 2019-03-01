@@ -51,15 +51,17 @@
           <span class="md-helper-text"></span>
           <span class="md-error">Please enter a username.</span>
         </md-field>
-        <md-dialog-actions>
-          <md-button
-            class="md-success md-raised"
-            @click="onConfirm();"
-            style="background: #00B0A0; color: white;"
-            ><md-icon style="color: white;">exit_to_app</md-icon>
-            Enter</md-button
-          >
-        </md-dialog-actions>
+        <center>
+          <md-dialog-actions>
+            <md-button
+              class="md-success md-raised"
+              @click="onConfirm();"
+              style="background: #00B0A0; color: white;"
+              ><md-icon style="color: white;">exit_to_app</md-icon>
+              Enter</md-button
+            >
+          </md-dialog-actions>
+        </center>
       </div>
     </md-dialog>
 
@@ -132,6 +134,11 @@
             <md-menu-item @click="ping_pong();">
               <md-icon>update</md-icon>
               <span>Ping Pong</span>
+            </md-menu-item>
+
+            <md-menu-item @click="random_round();">
+              <md-icon>update</md-icon>
+              <span>Random Round</span>
             </md-menu-item>
 
             <md-menu-item @click="clear();">
@@ -359,11 +366,13 @@ export default {
     ///////////////////////////////////////////////////////////////////
     attendeesRef.on("child_added", user => {
       let data = user.val();
-      let key = user.key;
+      //let key = user.key;
 
       ///////////////////////////////////////////////////////////////////
       // CASES TO ADJUST DATA - PERSON IS TALKING
       ///////////////////////////////////////////////////////////////////
+
+      // CASE -= Move talker to the top
       if (data.status.substring(2) === "talking") {
         // move standing_by away
         if (this.attendees[0].status.substring(2) === "standing_by") {
@@ -377,6 +386,16 @@ export default {
         }
       }
 
+      if (
+        this.attendees[1] &&
+        (this.attendees[1].status.substring(2) === "waiting" ||
+          this.attendees[1].status.substring(2) === "interjecting")
+      ) {
+        this.attendees[0].name = "click to continue...";
+      } else {
+        this.attendees[0].name = "waiting for input...";
+      }
+
       // compute mood
       if (data.mood === "mood_bad") {
         this.mood--;
@@ -384,13 +403,27 @@ export default {
         this.mood++;
       }
       // add  data to users array
+
       this.attendees.push(data);
-      this.attendees.sort(function(a, b) {
-        return (
-          parseInt(a.status.charAt(0)) - parseInt(b.status.charAt(0)) ||
-          a.joined_at - b.joined_at
-        );
-      });
+
+      // this is a brilliant sort function working on 2 keys
+      // if the status is the same, it sorts by joined_at
+      // https://stackoverflow.com/questions/13211709/javascript-sort-array-by-multiple-number-fields
+      if (this.status === "random") {
+        this.attendees.sort(function(a, b) {
+          return (
+            parseInt(a.status.charAt(0)) - parseInt(b.status.charAt(0)) ||
+            a.random_at - b.random_at
+          );
+        });
+      } else {
+        this.attendees.sort(function(a, b) {
+          return (
+            parseInt(a.status.charAt(0)) - parseInt(b.status.charAt(0)) ||
+            a.joined_at - b.joined_at
+          );
+        });
+      }
     });
 
     ///////////////////////////////////////////////////////////////////
@@ -399,6 +432,9 @@ export default {
 
     attendeesRef.on("child_changed", user => {
       let data = user.val();
+
+      // rethinking this: data will be one user, don't find the user in the array
+      // rather use username as array key!
 
       ///////////////////////////////////////////////////////////////////
       // STATUS CHANGE CASE - PERSON IS TALKING
@@ -617,12 +653,22 @@ export default {
       //this.attendees.sort(SortByName);
       // this is a brilliant sort function working on 2 keys
       // if the status is the same, it sorts by joined_at
-      this.attendees.sort(function(a, b) {
-        return (
-          parseInt(a.status.charAt(0)) - parseInt(b.status.charAt(0)) ||
-          a.joined_at - b.joined_at
-        );
-      });
+      // https://stackoverflow.com/questions/13211709/javascript-sort-array-by-multiple-number-fields
+      if (this.status === "random") {
+        this.attendees.sort(function(a, b) {
+          return (
+            parseInt(a.status.charAt(0)) - parseInt(b.status.charAt(0)) ||
+            a.random_at - b.random_at
+          );
+        });
+      } else {
+        this.attendees.sort(function(a, b) {
+          return (
+            parseInt(a.status.charAt(0)) - parseInt(b.status.charAt(0)) ||
+            a.joined_at - b.joined_at
+          );
+        });
+      }
     });
 
     function SortByName(x, y) {
@@ -770,8 +816,20 @@ export default {
           //console.log(person);
           if (person.status.substring(2) === "invisible") {
             arr[index].status = "0 standing_by";
-            arr[index].name = "waiting for input...";
-            arr.sort((a, b) => (a.status > b.status) - (a.status < b.status));
+            if (
+              this.attendees[2].status.substring(2) === "waiting" ||
+              this.attendees[2].status.substring(2) === "interjecting"
+            ) {
+              arr[index].name = "click to continue...";
+            } else {
+              arr[index].name = "waiting for input...";
+            }
+            arr.sort(function(a, b) {
+              return (
+                parseInt(a.status.charAt(0)) - parseInt(b.status.charAt(0)) ||
+                a.joined_at - b.joined_at
+              );
+            });
           }
         });
       }
@@ -814,20 +872,21 @@ export default {
 
     // ALL ATTENDEES WAITING IN RANDOM ORDER
     random_round: function(meeting) {
+      let attendeesRef = db.database().ref("meetings/test/attendees");
+
       this.status = "random";
       this.attendees.forEach((person, index, arr) => {
         //console.log(person);
         if (person.status.substring(2) !== "standing_by") {
-          person.status = "3 waiting";
+          attendeesRef.child(person.name).update({
+            status: "3 waiting",
+            random_at: Math.floor(
+              Math.random() * Math.floor(this.attendees.length)
+            )
+          });
         }
       });
 
-      this.attendees.sort(function() {
-        return 0.5 - Math.random();
-      });
-      this.attendees.sort(
-        (a, b) => (a.status > b.status) - (a.status < b.status)
-      );
       this.snack = "Ready for random round.";
       this.showSnackBar = true;
     },
@@ -910,12 +969,10 @@ export default {
           //console.log(person);
           // non-racing case
           if (person.name === name && person.status.substring(2) !== "racing") {
-            attendeesRef
-              .child(person.name)
-              .update({
-                status: "2 interjecting",
-                joined_at: new Date().getTime()
-              });
+            attendeesRef.child(person.name).update({
+              status: "2 interjecting",
+              joined_at: new Date().getTime()
+            });
           } else if (
             person.name === name &&
             person.status.substring(2) === "racing"
@@ -933,12 +990,10 @@ export default {
               .then(
                 this.failed
                   ? null
-                  : attendeesRef
-                      .child(person.name)
-                      .update({
-                        status: "1 talking",
-                        joined_at: new Date().getTime()
-                      })
+                  : attendeesRef.child(person.name).update({
+                      status: "1 talking",
+                      joined_at: new Date().getTime()
+                    })
               );
           }
         });
@@ -1115,11 +1170,11 @@ span.md-title {
 }
 
 #login-dialog {
-  min-height: 500px !important;
-  max-height: 500px !important;
-  min-width: 350px;
-  max-width: 350px !important;
-  width: 350 !important;
+  min-height: 510px !important;
+  max-height: 510px !important;
+  min-width: 320px;
+  max-width: 320px !important;
+  width: 320 !important;
 
   background-image: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0)),
     url("https://ledger.diglife.coop/images/talktime/talkTimeSplash.jpg");
@@ -1129,12 +1184,12 @@ span.md-title {
 }
 
 #login-dialog .md-dialog-actions {
-  padding: 130px 40px 0px 0px;
+  padding: 130px 0px 0px 0px;
 }
 
 #login-dialog .md-dialog-title {
   color: white;
-  font-size: 2.4em !important;
+  font-size: 2.1em !important;
   font-weight: normal;
   line-height: 0.9em !important;
 }
@@ -1147,11 +1202,11 @@ span.md-title {
 }
 
 #login-dialog div {
-  max-width: 400px;
+  max-width: 330px;
   line-height: 1.2em !important;
   padding: 0 25px;
   color: white;
-  font-size: 1.2em;
+  font-size: 1.1em;
 }
 
 #login-dialog .md-input,
