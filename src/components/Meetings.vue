@@ -285,6 +285,7 @@ export default {
     timer: null,
     failed: false,
     username: "",
+    domain: "diglife",
     mood: 0,
     battery: 1,
     meeting: { duration: 600 },
@@ -341,8 +342,15 @@ export default {
   //  CREATED - https://vuejs.org/v2/guide/instance.html
   ///////////////////////////////////////////////////////////////////////////////
   created: function() {
-    let attendeesRef = db.database().ref("meetings/test/attendees");
-    let parametersRef = db.database().ref("meetings/test/parameters");
+    this.domain = this.$route.params.domain || "gcc";
+    let attendeesRef = db
+      .database()
+      .ref("meetings/" + this.domain + "/attendees");
+    let parametersRef = db
+      .database()
+      .ref("meetings/" + this.domain + "/parameters");
+
+    console.log(this.domain);
 
     parametersRef.on("child_added", meeting => {
       let data = meeting.val();
@@ -448,14 +456,6 @@ export default {
         if (this.attendees[0].status.substring(2) === "standing_by") {
           this.attendees[0].status = "6 invisible";
         }
-        // move current talker away
-        else if (
-          this.attendees[0].status.substring(2) === "talking" &&
-          this.status !== "ping pong"
-        ) {
-          this.attendees[0].status = "7 completing";
-          attendeesRef.child(this.attendees[0].name).update(this.attendees[0]);
-        }
         // revert current talker - was not fast enough
         else if (
           this.attendees[0].status.substring(2) === "talking" &&
@@ -467,6 +467,22 @@ export default {
               attendeesRef.child(person.name).update({ status: "5 racing" });
             }
           });
+        }
+        // move current talker away
+        else if (
+          this.attendees[0].status.substring(2) === "talking" &&
+          this.status === "check out"
+        ) {
+          attendeesRef.child(this.attendees[0].name).remove();
+        }
+
+        // move current talker away
+        else if (
+          this.attendees[0].status.substring(2) === "talking" &&
+          this.status !== "ping pong"
+        ) {
+          this.attendees[0].status = "7 completing";
+          attendeesRef.child(this.attendees[0].name).update(this.attendees[0]);
         }
 
         // if (this.status === "ping pong") {
@@ -578,6 +594,21 @@ export default {
           if (person.name === data.name) {
             person.status = "7 completing";
             person.talk_time = data.talk_time;
+          }
+        });
+        this.time = 0; // don't stop the timer, useful for a quiet minute
+        this.attendees.forEach((person, index, arr) => {
+          //console.log(person);
+          if (person.status.substring(2) === "invisible") {
+            arr[index].status = "0 standing_by";
+            if (
+              this.attendees[2].status.substring(2) === "waiting" ||
+              this.attendees[2].status.substring(2) === "interjecting"
+            ) {
+              arr[index].name = "click to continue...";
+            } else {
+              arr[index].name = "waiting for input...";
+            }
           }
         });
       }
@@ -733,7 +764,9 @@ export default {
     },
 
     onConfirm: function() {
-      let attendeesRef = db.database().ref("meetings/test/attendees");
+      let attendeesRef = db
+        .database()
+        .ref("meetings/" + this.domain + "/attendees");
       if (!this.username) {
         this.activeUser = true;
         document.getElementById("username").classList.add("md-invalid");
@@ -764,7 +797,9 @@ export default {
 
     // MOST IMPORTANT FUNCTION - "I AM COMPLETE"
     complete: function(person) {
-      let attendeesRef = db.database().ref("meetings/test/attendees");
+      let attendeesRef = db
+        .database()
+        .ref("meetings/" + this.domain + "/attendees");
 
       if (person.status.substring(2) === "standing_by") {
         person.status = "6 invisible";
@@ -783,10 +818,6 @@ export default {
           .child(person.name)
           .update({ talk_time: person.talk_time + this.time });
       }
-      // this.attendees.sort(
-      //   (a, b) => (a.status > b.status) - (a.status < b.status)
-      // );
-      //console.log(this.attendees);
 
       // CASE: next person is waiting to be called
       if (
@@ -796,20 +827,6 @@ export default {
         attendeesRef
           .child(this.attendees[1].name)
           .update({ status: "1 talking" });
-        // this.attendees[0].status = "1 talking";
-        // this.attendees[0].started = new Date().getTime();
-        // // push to FB, set timer in child_changed
-        // this.time = 0;
-        // clearInterval(this.timer);
-        // this.timer = setInterval(() => {
-        //   this.time++;
-        //   if (this.attendees[0].name === this.username) {
-        //     this.battery =
-        //       1 -
-        //       (this.time + this.attendees[0].talk_time) /
-        //         ((this.meeting.duration / this.attendees.length) * 2);
-        //   }
-        // }, 1000);
 
         // CASE: nobody is waiting to be called, put standing_by back
       } else {
@@ -839,8 +856,12 @@ export default {
 
     // ALL ATTENDEES = WAITING
     check_in: function(meeting) {
-      let attendeesRef = db.database().ref("meetings/test/attendees");
-      let meetingsRef = db.database().ref("meetings/test/parameters");
+      let attendeesRef = db
+        .database()
+        .ref("meetings/" + this.domain + "/attendees");
+      let meetingsRef = db
+        .database()
+        .ref("meetings/" + this.domain + "/parameters");
       meetingsRef.update({ status: "check in" });
 
       this.attendees.forEach((person, index, arr) => {
@@ -856,8 +877,12 @@ export default {
 
     // ALL ATTENDEES WAITING IN REVERSE ORDER
     check_out: function(meeting) {
-      let attendeesRef = db.database().ref("meetings/test/attendees");
-      let meetingsRef = db.database().ref("meetings/test/parameters");
+      let attendeesRef = db
+        .database()
+        .ref("meetings/" + this.domain + "/attendees");
+      let meetingsRef = db
+        .database()
+        .ref("meetings/" + this.domain + "/parameters");
       meetingsRef.update({ status: "check out" });
 
       this.attendees.forEach((person, index, arr) => {
@@ -874,7 +899,9 @@ export default {
 
     // ALL ATTENDEES WAITING IN RANDOM ORDER
     random_round: function(meeting) {
-      let attendeesRef = db.database().ref("meetings/test/attendees");
+      let attendeesRef = db
+        .database()
+        .ref("meetings/" + this.domain + "/attendees");
 
       this.status = "random";
       this.attendees.forEach((person, index, arr) => {
@@ -895,8 +922,12 @@ export default {
 
     // ALL ATTENDEES CAN CALL ANYTIME
     ping_pong: function(meeting) {
-      let attendeesRef = db.database().ref("meetings/test/attendees");
-      let meetingsRef = db.database().ref("meetings/test/parameters");
+      let attendeesRef = db
+        .database()
+        .ref("meetings/" + this.domain + "/attendees");
+      let meetingsRef = db
+        .database()
+        .ref("meetings/" + this.domain + "/parameters");
       meetingsRef.update({ status: "ping pong" });
 
       this.attendees.forEach((person, index, arr) => {
@@ -912,8 +943,12 @@ export default {
 
     // CLEAR ALL ATTENDEE STATUS, BUT NOT TIME
     clear: function(meeting) {
-      let attendeesRef = db.database().ref("meetings/test/attendees");
-      let meetingsRef = db.database().ref("meetings/test/parameters");
+      let attendeesRef = db
+        .database()
+        .ref("meetings/" + this.domain + "/attendees");
+      let meetingsRef = db
+        .database()
+        .ref("meetings/" + this.domain + "/parameters");
       meetingsRef.update({ status: "clear out" });
 
       this.attendees.forEach((person, index, arr) => {
@@ -929,7 +964,9 @@ export default {
 
     // ENABLE BUTTONS
     start_meeting: function(meeting) {
-      let meetingsRef = db.database().ref("meetings/test/parameters");
+      let meetingsRef = db
+        .database()
+        .ref("meetings/" + this.domain + "/parameters");
       meetingsRef.update({ status: "on air" });
       this.snack = "This meeting has started";
       this.showSnackBar = true;
@@ -937,7 +974,9 @@ export default {
 
     // DISABLE BUTTONS
     end_meeting: function(meeting) {
-      let meetingsRef = db.database().ref("meetings/test/parameters");
+      let meetingsRef = db
+        .database()
+        .ref("meetings/" + this.domain + "/parameters");
       meetingsRef.update({ status: "ended" });
       this.snack = "This meeting has ended";
       this.showSnackBar = true;
@@ -945,7 +984,9 @@ export default {
 
     // BIG BUTTON RAISE HAND
     raise_hand: function(name) {
-      let attendeesRef = db.database().ref("meetings/test/attendees");
+      let attendeesRef = db
+        .database()
+        .ref("meetings/" + this.domain + "/attendees");
 
       if (this.attendees[0].name !== this.username) {
         this.attendees.forEach((person, index, arr) => {
@@ -964,7 +1005,9 @@ export default {
 
     // BIG BUTTON INTERJECT
     interject: function(name) {
-      let attendeesRef = db.database().ref("meetings/test/attendees");
+      let attendeesRef = db
+        .database()
+        .ref("meetings/" + this.domain + "/attendees");
 
       if (this.attendees[0].name !== this.username) {
         this.attendees.forEach((person, index, arr) => {
@@ -1008,7 +1051,9 @@ export default {
 
     // PICK ONE ATTENDEE TO TALK, GOOD FOR MANUAL UPDATE
     appoint: function(person) {
-      let attendeesRef = db.database().ref("meetings/test/attendees");
+      let attendeesRef = db
+        .database()
+        .ref("meetings/" + this.domain + "/attendees");
       attendeesRef.child(person.name).update({ status: "1 talking" });
 
       this.snack = "You have appointed " + person.name + ".";
@@ -1017,7 +1062,9 @@ export default {
 
     // LOWER HAND
     withdraw: function(person) {
-      let attendeesRef = db.database().ref("meetings/test/attendees");
+      let attendeesRef = db
+        .database()
+        .ref("meetings/" + this.domain + "/attendees");
       attendeesRef.child(person.name).update({ status: "4 listening" });
 
       this.snack = "You have withdrawn " + person.name + ".";
@@ -1027,7 +1074,9 @@ export default {
 
     // AGREE WITH TOPIC
     on_topic: function(name) {
-      let attendeesRef = db.database().ref("meetings/test/attendees");
+      let attendeesRef = db
+        .database()
+        .ref("meetings/" + this.domain + "/attendees");
 
       this.attendees.forEach((person, index, arr) => {
         //if found, set mood and clear after 1 min
@@ -1041,7 +1090,9 @@ export default {
 
     // DISAGREE WITH TOPIC
     off_topic: function(name) {
-      let attendeesRef = db.database().ref("meetings/test/attendees");
+      let attendeesRef = db
+        .database()
+        .ref("meetings/" + this.domain + "/attendees");
 
       this.attendees.forEach((person, index, arr) => {
         //if found, set mood and clear after 1 min
@@ -1174,9 +1225,9 @@ span.md-title {
 #login-dialog {
   min-height: 510px !important;
   max-height: 510px !important;
-  min-width: 320px;
-  max-width: 320px !important;
-  width: 320 !important;
+  min-width: 350px;
+  max-width: 350px !important;
+  width: 350 !important;
 
   background-image: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0)),
     url("https://ledger.diglife.coop/images/talktime/talkTimeSplash.jpg");
@@ -1191,7 +1242,7 @@ span.md-title {
 
 #login-dialog .md-dialog-title {
   color: white;
-  font-size: 2.1em !important;
+  font-size: 2.4em !important;
   font-weight: normal;
   line-height: 0.9em !important;
 }
@@ -1204,7 +1255,7 @@ span.md-title {
 }
 
 #login-dialog div {
-  max-width: 330px;
+  max-width: 350px;
   line-height: 1.2em !important;
   padding: 0 25px;
   color: white;
