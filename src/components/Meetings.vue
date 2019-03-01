@@ -464,7 +464,6 @@ export default {
           this.attendees.forEach((person, index, arr) => {
             if (person.name === data.name) {
               person.status = "5 racing";
-              console.log("-----", person);
               attendeesRef.child(person.name).update({ status: "5 racing" });
             }
           });
@@ -528,7 +527,6 @@ export default {
             person.status = "4 listening";
           }
         });
-        this.status = "on air";
       }
 
       ///////////////////////////////////////////////////////////////////
@@ -925,7 +923,7 @@ export default {
         }
       });
 
-      this.snack = "Ready for checking in.";
+      this.snack = "All attendees cleared.";
       this.showSnackBar = true;
     },
 
