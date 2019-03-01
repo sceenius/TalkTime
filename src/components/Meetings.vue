@@ -388,12 +388,16 @@ export default {
 
       if (
         this.attendees[1] &&
-        (this.attendees[1].status.substring(2) === "waiting" ||
-          this.attendees[1].status.substring(2) === "interjecting")
+        this.attendees[0].status.substring(2) === "standing_by"
       ) {
-        this.attendees[0].name = "click to continue...";
-      } else {
-        this.attendees[0].name = "waiting for input...";
+        if (
+          this.attendees[1].status.substring(2) === "waiting" ||
+          this.attendees[1].status.substring(2) === "interjecting"
+        ) {
+          this.attendees[0].name = "click to continue...";
+        } else {
+          this.attendees[0].name = "waiting for input...";
+        }
       }
 
       // compute mood
