@@ -633,6 +633,36 @@ export default {
       }
 
       ///////////////////////////////////////////////////////////////////
+      // STATUS CHANGE CASE  - PERSON IS DELETING
+      ///////////////////////////////////////////////////////////////////
+      else if (data.status.substring(2) === "deleting") {
+        // find person and change status
+        this.time = 0; // don't stop the timer, useful for a quiet minute
+        this.attendees.forEach((person, index, arr) => {
+          //console.log(person);
+          if (person.status.substring(2) === "invisible") {
+            arr[index].status = "0 standing_by";
+            if (
+              this.attendees[2] &&
+              (this.attendees[2].status.substring(2) === "waiting" ||
+                this.attendees[2].status.substring(2) === "interjecting")
+            ) {
+              arr[index].name = "click to continue...";
+            } else {
+              arr[index].name = "waiting for input...";
+            }
+          }
+        });
+
+        this.attendees.forEach((person, index, arr) => {
+          //console.log(person);
+          if (person.name === data.name) {
+            this.attendeesRef.child(person.name).remove();
+          }
+        });
+      }
+
+      ///////////////////////////////////////////////////////////////////
       // STATUS CHANGE CASE  - PERSON IS INTERJECTING
       ///////////////////////////////////////////////////////////////////
       else if (data.status.substring(2) === "interjecting") {
@@ -822,8 +852,9 @@ export default {
         });
       } else if (this.status === "check out") {
         // remove participant
-        console.log("-----------", person);
-        this.attendeesRef.child(person.name).remove();
+        this.attendeesRef.child(person.name).update({
+          status: "8 deleting"
+        });
       } else {
         // complete participant
         this.attendeesRef.child(person.name).update({
@@ -850,8 +881,9 @@ export default {
           if (person.status.substring(2) === "invisible") {
             arr[index].status = "0 standing_by";
             if (
-              this.attendees[2].status.substring(2) === "waiting" ||
-              this.attendees[2].status.substring(2) === "interjecting"
+              this.attendees[2] &&
+              (this.attendees[2].status.substring(2) === "waiting" ||
+                this.attendees[2].status.substring(2) === "interjecting")
             ) {
               arr[index].name = "click to continue...";
             } else {
