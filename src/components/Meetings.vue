@@ -837,6 +837,7 @@ export default {
         this.attendees[1].status.substring(2) === "waiting" ||
         this.attendees[1].status.substring(2) === "interjecting"
       ) {
+        this.attendees[0].status = "6 invisible";
         this.attendeesRef
           .child(this.attendees[1].name)
           .update({ status: "1 talking" });
