@@ -7,6 +7,11 @@ Vue.use(Router);
 export default new Router({
   routes: [
     {
+      path: "/",
+      name: "Meetings",
+      component: Meetings
+    },
+    {
       path: "/:domain",
       name: "Meetings",
       component: Meetings,
