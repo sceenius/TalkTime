@@ -128,7 +128,7 @@
 
             <md-menu-item @click="check_out();">
               <md-icon>update</md-icon>
-              <span>Reverse-out</span>
+              <span>Check-out</span>
             </md-menu-item>
 
             <md-menu-item @click="ping_pong();">
@@ -352,7 +352,7 @@ export default {
       .database()
       .ref("meetings/" + this.domain + "/parameters");
 
-    console.log(this.domain);
+    console.log("====", this.domain);
 
     this.parametersRef.on("child_added", meeting => {
       let data = meeting.val();
@@ -443,6 +443,21 @@ export default {
     });
 
     ///////////////////////////////////////////////////////////////////
+    // FIREBASE CHILD REMOVED EVENTS
+    ///////////////////////////////////////////////////////////////////
+    this.attendeesRef.on("child_removed", user => {
+      let data = user.val();
+      console.log(">>>>>>>>>>>>>>>", data);
+      // find person and change status
+      this.attendees.forEach((person, index, arr) => {
+        //console.log(person);
+        if (person.name === data.name) {
+          arr.splice(index, 1);
+        }
+      });
+    });
+
+    ///////////////////////////////////////////////////////////////////
     // FIREBASE CHILD CHANGED EVENTS
     ///////////////////////////////////////////////////////////////////
 
@@ -474,13 +489,6 @@ export default {
             }
           });
         }
-        // move current talker away
-        else if (
-          this.attendees[0].status.substring(2) === "talking" &&
-          this.status === "check out"
-        ) {
-          this.attendeesRef.child(this.attendees[0].name).remove();
-        }
 
         // move current talker away
         else if (
@@ -493,7 +501,7 @@ export default {
             .update(this.attendees[0]);
         }
 
-        // if (this.status === "ping pong") {
+        // if (this.status !== "check out") {
         // find person and change status
         this.attendees.forEach((person, index, arr) => {
           if (person.name === data.name) {
@@ -551,6 +559,7 @@ export default {
             person.status = "4 listening";
           }
         });
+        this.status = "on air";
       }
 
       ///////////////////////////////////////////////////////////////////
@@ -600,10 +609,12 @@ export default {
         this.attendees.forEach((person, index, arr) => {
           //console.log(person);
           if (person.name === data.name) {
+            // move current talker away
             person.status = "7 completing";
             person.talk_time = data.talk_time;
           }
         });
+
         this.time = 0; // don't stop the timer, useful for a quiet minute
         this.attendees.forEach((person, index, arr) => {
           //console.log(person);
@@ -805,19 +816,20 @@ export default {
       if (person.status.substring(2) === "standing_by") {
         person.status = "6 invisible";
       } else if (this.attendees[1].status.substring(2) === "racing") {
-        // person.talk_time = person.talk_time + this.time;
-        // person.status = "5 racing";
-        this.attendeesRef.child(person.name).update({ status: "5 racing" });
-        this.attendeesRef
-          .child(person.name)
-          .update({ talk_time: person.talk_time + this.time });
+        this.attendeesRef.child(person.name).update({
+          status: "5 racing",
+          talk_time: person.talk_time + this.time
+        });
+      } else if (this.status === "check out") {
+        // remove participant
+        console.log("-----------", person);
+        this.attendeesRef.child(person.name).remove();
       } else {
-        // person.talk_time = person.talk_time + this.time;
-        // person.status = "7 completing";
-        this.attendeesRef.child(person.name).update({ status: "7 completing" });
-        this.attendeesRef
-          .child(person.name)
-          .update({ talk_time: person.talk_time + this.time });
+        // complete participant
+        this.attendeesRef.child(person.name).update({
+          status: "7 completing",
+          talk_time: person.talk_time + this.time
+        });
       }
 
       // CASE: next person is waiting to be called
@@ -861,7 +873,9 @@ export default {
       this.attendees.forEach((person, index, arr) => {
         //console.log(person);
         if (person.status.substring(2) !== "standing_by") {
-          this.attendeesRef.child(person.name).update({ status: "3 waiting" });
+          this.attendeesRef
+            .child(person.name)
+            .update({ status: "3 waiting", joined_at: new Date().getTime() });
         }
       });
 
@@ -878,7 +892,9 @@ export default {
           this.attendeesRef
             .child(person.name)
             .update({ status: "4 listening" });
-          this.attendeesRef.child(person.name).update({ status: "3 waiting" });
+          this.attendeesRef
+            .child(person.name)
+            .update({ status: "3 waiting", joined_at: new Date().getTime() });
         }
       });
 
@@ -894,6 +910,7 @@ export default {
         if (person.status.substring(2) !== "standing_by") {
           this.attendeesRef.child(person.name).update({
             status: "3 waiting",
+            joined_at: new Date().getTime(),
             random_at: Math.floor(
               Math.random() * Math.floor(this.attendees.length)
             )
@@ -911,7 +928,9 @@ export default {
       this.attendees.forEach((person, index, arr) => {
         //console.log(person);
         if (person.status.substring(2) !== "standing_by") {
-          this.attendeesRef.child(person.name).update({ status: "5 racing" });
+          this.attendeesRef
+            .child(person.name)
+            .update({ status: "5 racing", joined_at: new Date().getTime() });
         }
       });
 
@@ -927,7 +946,7 @@ export default {
         if (person.status.substring(2) !== "standing_by") {
           this.attendeesRef
             .child(person.name)
-            .update({ status: "4 listening" });
+            .update({ status: "4 listening", joined_at: new Date().getTime() });
         }
       });
 
