@@ -40,7 +40,7 @@
         This app is best used on a mobile phone. To get started, please enter
         your username.<br /><br />
         <md-field id="username">
-          <label style=" color: white;">Username</label>
+          <label style=" color: white;">Name</label>
           <md-input
             ref="focusable"
             v-model="username"
@@ -289,6 +289,8 @@ export default {
     mood: 0,
     battery: 1,
     meeting: { duration: 600 },
+    attendeesRef: "",
+    parametersRef: "",
     users: [],
     attendees: [
       { name: "waiting for input...", status: "0 standing_by", talk_time: 0 }
@@ -343,16 +345,16 @@ export default {
   ///////////////////////////////////////////////////////////////////////////////
   created: function() {
     this.domain = this.$route.params.domain || "gcc";
-    let attendeesRef = db
+    this.attendeesRef = db
       .database()
       .ref("meetings/" + this.domain + "/attendees");
-    let parametersRef = db
+    this.parametersRef = db
       .database()
       .ref("meetings/" + this.domain + "/parameters");
 
     console.log(this.domain);
 
-    parametersRef.on("child_added", meeting => {
+    this.parametersRef.on("child_added", meeting => {
       let data = meeting.val();
       let key = meeting.key;
       if (key === "status") {
@@ -360,7 +362,7 @@ export default {
       }
     });
 
-    parametersRef.on("child_changed", meeting => {
+    this.parametersRef.on("child_changed", meeting => {
       let data = meeting.val();
       let key = meeting.key;
       if (key === "status") {
@@ -372,7 +374,7 @@ export default {
     ///////////////////////////////////////////////////////////////////
     // FIREBASE CHILD ADDED EVENTS
     ///////////////////////////////////////////////////////////////////
-    attendeesRef.on("child_added", user => {
+    this.attendeesRef.on("child_added", user => {
       let data = user.val();
       //let key = user.key;
 
@@ -390,7 +392,9 @@ export default {
         // move current talker away
         else if (this.attendees[0].status.substring(2) === "talking") {
           this.attendees[0].status = "7 completing";
-          attendeesRef.child(this.attendees[0].name).update(this.attendees[0]);
+          this.attendeesRef
+            .child(this.attendees[0].name)
+            .update(this.attendees[0]);
         }
       }
 
@@ -442,7 +446,7 @@ export default {
     // FIREBASE CHILD CHANGED EVENTS
     ///////////////////////////////////////////////////////////////////
 
-    attendeesRef.on("child_changed", user => {
+    this.attendeesRef.on("child_changed", user => {
       let data = user.val();
 
       // rethinking this: data will be one user, don't find the user in the array
@@ -464,7 +468,9 @@ export default {
           this.attendees.forEach((person, index, arr) => {
             if (person.name === data.name) {
               person.status = "5 racing";
-              attendeesRef.child(person.name).update({ status: "5 racing" });
+              this.attendeesRef
+                .child(person.name)
+                .update({ status: "5 racing" });
             }
           });
         }
@@ -473,7 +479,7 @@ export default {
           this.attendees[0].status.substring(2) === "talking" &&
           this.status === "check out"
         ) {
-          attendeesRef.child(this.attendees[0].name).remove();
+          this.attendeesRef.child(this.attendees[0].name).remove();
         }
 
         // move current talker away
@@ -482,7 +488,9 @@ export default {
           this.status !== "ping pong"
         ) {
           this.attendees[0].status = "7 completing";
-          attendeesRef.child(this.attendees[0].name).update(this.attendees[0]);
+          this.attendeesRef
+            .child(this.attendees[0].name)
+            .update(this.attendees[0]);
         }
 
         // if (this.status === "ping pong") {
@@ -643,7 +651,7 @@ export default {
             person.mood = "mood";
             clearInterval(person.mood_timer);
             person.mood_timer = setInterval(() => {
-              attendeesRef.child(person.name).update({ mood: "" });
+              this.attendeesRef.child(person.name).update({ mood: "" });
               person.mood = "";
               this.mood--;
               clearInterval(person.mood_timer);
@@ -660,7 +668,7 @@ export default {
             person.mood = "mood_bad";
             clearInterval(person.mood_timer);
             person.mood_timer = setInterval(() => {
-              attendeesRef.child(person.name).update({ mood: "" });
+              this.attendeesRef.child(person.name).update({ mood: "" });
               person.mood = "";
               this.mood++;
               clearInterval(person.mood_timer);
@@ -764,9 +772,6 @@ export default {
     },
 
     onConfirm: function() {
-      let attendeesRef = db
-        .database()
-        .ref("meetings/" + this.domain + "/attendees");
       if (!this.username) {
         this.activeUser = true;
         document.getElementById("username").classList.add("md-invalid");
@@ -781,7 +786,7 @@ export default {
           return user.name === this.username;
         });
         if (this.profile === undefined) {
-          attendeesRef.child(this.username).update({
+          this.attendeesRef.child(this.username).update({
             name: this.username,
             status: "4 listening",
             talk_time: 0,
@@ -797,24 +802,20 @@ export default {
 
     // MOST IMPORTANT FUNCTION - "I AM COMPLETE"
     complete: function(person) {
-      let attendeesRef = db
-        .database()
-        .ref("meetings/" + this.domain + "/attendees");
-
       if (person.status.substring(2) === "standing_by") {
         person.status = "6 invisible";
       } else if (this.attendees[1].status.substring(2) === "racing") {
         // person.talk_time = person.talk_time + this.time;
         // person.status = "5 racing";
-        attendeesRef.child(person.name).update({ status: "5 racing" });
-        attendeesRef
+        this.attendeesRef.child(person.name).update({ status: "5 racing" });
+        this.attendeesRef
           .child(person.name)
           .update({ talk_time: person.talk_time + this.time });
       } else {
         // person.talk_time = person.talk_time + this.time;
         // person.status = "7 completing";
-        attendeesRef.child(person.name).update({ status: "7 completing" });
-        attendeesRef
+        this.attendeesRef.child(person.name).update({ status: "7 completing" });
+        this.attendeesRef
           .child(person.name)
           .update({ talk_time: person.talk_time + this.time });
       }
@@ -824,7 +825,7 @@ export default {
         this.attendees[1].status.substring(2) === "waiting" ||
         this.attendees[1].status.substring(2) === "interjecting"
       ) {
-        attendeesRef
+        this.attendeesRef
           .child(this.attendees[1].name)
           .update({ status: "1 talking" });
 
@@ -856,18 +857,11 @@ export default {
 
     // ALL ATTENDEES = WAITING
     check_in: function(meeting) {
-      let attendeesRef = db
-        .database()
-        .ref("meetings/" + this.domain + "/attendees");
-      let meetingsRef = db
-        .database()
-        .ref("meetings/" + this.domain + "/parameters");
-      meetingsRef.update({ status: "check in" });
-
+      this.parametersRef.update({ status: "check in" });
       this.attendees.forEach((person, index, arr) => {
         //console.log(person);
         if (person.status.substring(2) !== "standing_by") {
-          attendeesRef.child(person.name).update({ status: "3 waiting" });
+          this.attendeesRef.child(person.name).update({ status: "3 waiting" });
         }
       });
 
@@ -877,19 +871,14 @@ export default {
 
     // ALL ATTENDEES WAITING IN REVERSE ORDER
     check_out: function(meeting) {
-      let attendeesRef = db
-        .database()
-        .ref("meetings/" + this.domain + "/attendees");
-      let meetingsRef = db
-        .database()
-        .ref("meetings/" + this.domain + "/parameters");
-      meetingsRef.update({ status: "check out" });
-
+      this.parametersRef.update({ status: "check out" });
       this.attendees.forEach((person, index, arr) => {
         //console.log(person);
         if (person.status.substring(2) !== "standing_by") {
-          attendeesRef.child(person.name).update({ status: "4 listening" });
-          attendeesRef.child(person.name).update({ status: "3 waiting" });
+          this.attendeesRef
+            .child(person.name)
+            .update({ status: "4 listening" });
+          this.attendeesRef.child(person.name).update({ status: "3 waiting" });
         }
       });
 
@@ -899,15 +888,11 @@ export default {
 
     // ALL ATTENDEES WAITING IN RANDOM ORDER
     random_round: function(meeting) {
-      let attendeesRef = db
-        .database()
-        .ref("meetings/" + this.domain + "/attendees");
-
       this.status = "random";
       this.attendees.forEach((person, index, arr) => {
         //console.log(person);
         if (person.status.substring(2) !== "standing_by") {
-          attendeesRef.child(person.name).update({
+          this.attendeesRef.child(person.name).update({
             status: "3 waiting",
             random_at: Math.floor(
               Math.random() * Math.floor(this.attendees.length)
@@ -922,18 +907,11 @@ export default {
 
     // ALL ATTENDEES CAN CALL ANYTIME
     ping_pong: function(meeting) {
-      let attendeesRef = db
-        .database()
-        .ref("meetings/" + this.domain + "/attendees");
-      let meetingsRef = db
-        .database()
-        .ref("meetings/" + this.domain + "/parameters");
-      meetingsRef.update({ status: "ping pong" });
-
+      this.parametersRef.update({ status: "ping pong" });
       this.attendees.forEach((person, index, arr) => {
         //console.log(person);
         if (person.status.substring(2) !== "standing_by") {
-          attendeesRef.child(person.name).update({ status: "5 racing" });
+          this.attendeesRef.child(person.name).update({ status: "5 racing" });
         }
       });
 
@@ -943,18 +921,13 @@ export default {
 
     // CLEAR ALL ATTENDEE STATUS, BUT NOT TIME
     clear: function(meeting) {
-      let attendeesRef = db
-        .database()
-        .ref("meetings/" + this.domain + "/attendees");
-      let meetingsRef = db
-        .database()
-        .ref("meetings/" + this.domain + "/parameters");
-      meetingsRef.update({ status: "clear out" });
-
+      this.parametersRef.update({ status: "clear out" });
       this.attendees.forEach((person, index, arr) => {
         //console.log(person);
         if (person.status.substring(2) !== "standing_by") {
-          attendeesRef.child(person.name).update({ status: "4 listening" });
+          this.attendeesRef
+            .child(person.name)
+            .update({ status: "4 listening" });
         }
       });
 
@@ -964,35 +937,25 @@ export default {
 
     // ENABLE BUTTONS
     start_meeting: function(meeting) {
-      let meetingsRef = db
-        .database()
-        .ref("meetings/" + this.domain + "/parameters");
-      meetingsRef.update({ status: "on air" });
+      this.parametersRef.update({ status: "on air" });
       this.snack = "This meeting has started";
       this.showSnackBar = true;
     },
 
     // DISABLE BUTTONS
     end_meeting: function(meeting) {
-      let meetingsRef = db
-        .database()
-        .ref("meetings/" + this.domain + "/parameters");
-      meetingsRef.update({ status: "ended" });
+      this.parametersRef.update({ status: "ended" });
       this.snack = "This meeting has ended";
       this.showSnackBar = true;
     },
 
     // BIG BUTTON RAISE HAND
     raise_hand: function(name) {
-      let attendeesRef = db
-        .database()
-        .ref("meetings/" + this.domain + "/attendees");
-
       if (this.attendees[0].name !== this.username) {
         this.attendees.forEach((person, index, arr) => {
           //console.log(person);
           if (person.name === name) {
-            attendeesRef
+            this.attendeesRef
               .child(person.name)
               .update({ status: "3 waiting", joined_at: new Date().getTime() });
           }
@@ -1005,16 +968,12 @@ export default {
 
     // BIG BUTTON INTERJECT
     interject: function(name) {
-      let attendeesRef = db
-        .database()
-        .ref("meetings/" + this.domain + "/attendees");
-
       if (this.attendees[0].name !== this.username) {
         this.attendees.forEach((person, index, arr) => {
           //console.log(person);
           // non-racing case
           if (person.name === name && person.status.substring(2) !== "racing") {
-            attendeesRef.child(person.name).update({
+            this.attendeesRef.child(person.name).update({
               status: "2 interjecting",
               joined_at: new Date().getTime()
             });
@@ -1023,7 +982,7 @@ export default {
             person.status.substring(2) === "racing"
           ) {
             this.failed = false;
-            attendeesRef
+            this.attendeesRef
               .once("value", attendees => {
                 attendees.forEach(snapshot => {
                   let data = snapshot.val();
@@ -1035,7 +994,7 @@ export default {
               .then(
                 this.failed
                   ? null
-                  : attendeesRef.child(person.name).update({
+                  : this.attendeesRef.child(person.name).update({
                       status: "1 talking",
                       joined_at: new Date().getTime()
                     })
@@ -1051,22 +1010,14 @@ export default {
 
     // PICK ONE ATTENDEE TO TALK, GOOD FOR MANUAL UPDATE
     appoint: function(person) {
-      let attendeesRef = db
-        .database()
-        .ref("meetings/" + this.domain + "/attendees");
-      attendeesRef.child(person.name).update({ status: "1 talking" });
-
+      this.attendeesRef.child(person.name).update({ status: "1 talking" });
       this.snack = "You have appointed " + person.name + ".";
       this.showSnackBar = true;
     },
 
     // LOWER HAND
     withdraw: function(person) {
-      let attendeesRef = db
-        .database()
-        .ref("meetings/" + this.domain + "/attendees");
-      attendeesRef.child(person.name).update({ status: "4 listening" });
-
+      this.attendeesRef.child(person.name).update({ status: "4 listening" });
       this.snack = "You have withdrawn " + person.name + ".";
       this.showSnackBar = true;
       this.action = "reject";
@@ -1074,14 +1025,10 @@ export default {
 
     // AGREE WITH TOPIC
     on_topic: function(name) {
-      let attendeesRef = db
-        .database()
-        .ref("meetings/" + this.domain + "/attendees");
-
       this.attendees.forEach((person, index, arr) => {
         //if found, set mood and clear after 1 min
         if (person.name === name) {
-          attendeesRef.child(person.name).update({ mood: "mood" });
+          this.attendeesRef.child(person.name).update({ mood: "mood" });
         }
       });
       this.snack = "Your mood has been registered.";
@@ -1090,14 +1037,10 @@ export default {
 
     // DISAGREE WITH TOPIC
     off_topic: function(name) {
-      let attendeesRef = db
-        .database()
-        .ref("meetings/" + this.domain + "/attendees");
-
       this.attendees.forEach((person, index, arr) => {
         //if found, set mood and clear after 1 min
         if (person.name === name) {
-          attendeesRef.child(person.name).update({ mood: "mood_bad" });
+          this.attendeesRef.child(person.name).update({ mood: "mood_bad" });
         }
       });
       this.snack = "Your mood has been registered.";
