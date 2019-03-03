@@ -568,7 +568,8 @@ export default {
           if (person.status.substring(2) === "invisible") {
             person.status = "0 standing_by";
           } else if (person.status.substring(2) !== "standing_by") {
-            person.status = "4 listening";
+            person.status = data.status;
+            person.joined_at = data.joined_at;
           }
         });
         this.status = "on air";
