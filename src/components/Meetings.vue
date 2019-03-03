@@ -344,7 +344,14 @@ export default {
   //  CREATED - https://vuejs.org/v2/guide/instance.html
   ///////////////////////////////////////////////////////////////////////////////
   created: function() {
+    ///////////////////////////////////////////////////////////////////
+    // GET PARAM FROM ROUTER
+    ///////////////////////////////////////////////////////////////////
     this.domain = this.$route.params.domain || "gcc";
+
+    ///////////////////////////////////////////////////////////////////
+    // SET FIREBASE REFS
+    ///////////////////////////////////////////////////////////////////
     this.attendeesRef = db
       .database()
       .ref("meetings/" + this.domain + "/attendees");
@@ -352,8 +359,9 @@ export default {
       .database()
       .ref("meetings/" + this.domain + "/parameters");
 
-    console.log("====", this.domain);
-
+    ///////////////////////////////////////////////////////////////////
+    // LISTEN TO PARAMETER CHANGES
+    ///////////////////////////////////////////////////////////////////
     this.parametersRef.on("child_added", meeting => {
       let data = meeting.val();
       let key = meeting.key;
@@ -370,16 +378,15 @@ export default {
       }
     });
 
-    this.mood = 0;
     ///////////////////////////////////////////////////////////////////
-    // FIREBASE CHILD ADDED EVENTS
+    // LISTEN TO ATTENDEE ADDITIONS
     ///////////////////////////////////////////////////////////////////
     this.attendeesRef.on("child_added", user => {
       let data = user.val();
       //let key = user.key;
 
       ///////////////////////////////////////////////////////////////////
-      // CASES TO ADJUST DATA - PERSON IS TALKING
+      // PERSON IS TALKING
       ///////////////////////////////////////////////////////////////////
 
       // CASE -= Move talker to the top
@@ -458,9 +465,8 @@ export default {
     });
 
     ///////////////////////////////////////////////////////////////////
-    // FIREBASE CHILD CHANGED EVENTS
+    // LISTEN TO ATTENDEE CHANGES
     ///////////////////////////////////////////////////////////////////
-
     this.attendeesRef.on("child_changed", user => {
       let data = user.val();
 
@@ -525,7 +531,7 @@ export default {
       }
 
       ///////////////////////////////////////////////////////////////////
-      // STATUS CHANGE CASE  - PERSON IS LISTENING
+      // PERSON IS LISTENING
       ///////////////////////////////////////////////////////////////////
       else if (
         data.status.substring(2) === "listening" &&
@@ -545,7 +551,7 @@ export default {
       }
 
       ///////////////////////////////////////////////////////////////////
-      // STATUS CHANGE CASE  - CLEAR
+      // CLEAR
       ///////////////////////////////////////////////////////////////////
       else if (
         data.status.substring(2) === "listening" &&
@@ -563,7 +569,7 @@ export default {
       }
 
       ///////////////////////////////////////////////////////////////////
-      // STATUS CHANGE CASE  - PING PONG
+      // PING PONG
       ///////////////////////////////////////////////////////////////////
       else if (
         data.status.substring(2) === "racing" &&
@@ -585,7 +591,7 @@ export default {
       }
 
       ///////////////////////////////////////////////////////////////////
-      // STATUS CHANGE CASE  - PERSON IS WAITING
+      // PERSON IS WAITING
       ///////////////////////////////////////////////////////////////////
       else if (data.status.substring(2) === "waiting") {
         if (this.attendees[0].status.substring(2) === "standing_by") {
@@ -602,7 +608,7 @@ export default {
       }
 
       ///////////////////////////////////////////////////////////////////
-      // STATUS CHANGE CASE  - PERSON IS COMPLETING
+      // PERSON IS COMPLETING
       ///////////////////////////////////////////////////////////////////
       else if (data.status.substring(2) === "completing") {
         // find person and change status
@@ -633,7 +639,7 @@ export default {
       }
 
       ///////////////////////////////////////////////////////////////////
-      // STATUS CHANGE CASE  - PERSON IS DELETING
+      // PERSON IS DELETING/CHECKING OUT
       ///////////////////////////////////////////////////////////////////
       else if (data.status.substring(2) === "deleting") {
         // find person and change status
@@ -663,7 +669,7 @@ export default {
       }
 
       ///////////////////////////////////////////////////////////////////
-      // STATUS CHANGE CASE  - PERSON IS INTERJECTING
+      // PERSON IS INTERJECTING
       ///////////////////////////////////////////////////////////////////
       else if (data.status.substring(2) === "interjecting") {
         if (this.attendees[0].status.substring(2) === "standing_by") {
@@ -675,15 +681,12 @@ export default {
           //console.log(person);
           if (person.name === data.name) {
             person.status = "2 interjecting";
-            // if (this.attendees[0].status.substring(2) === "standing_by") {
-            //   this.attendees[0].status = "6 invisible";
-            // }
           }
         });
       }
 
       ///////////////////////////////////////////////////////////////////
-      // MOOD CHANGE CASE  - PERSON IS ON TOPIC
+      // PERSON IS ON TOPIC
       ///////////////////////////////////////////////////////////////////
       this.mood = 0;
       if (data.mood === "mood") {
@@ -701,7 +704,7 @@ export default {
         });
       }
       ///////////////////////////////////////////////////////////////////
-      // MOOD CHANGE CASE  - PERSON IS OFF TOPIC
+      // PERSON IS OFF TOPIC
       ///////////////////////////////////////////////////////////////////
       else if (data.mood === "mood_bad") {
         this.attendees.forEach((person, index, arr) => {
@@ -718,7 +721,7 @@ export default {
         });
       }
       ///////////////////////////////////////////////////////////////////
-      // MOOD CHANGE CASE  - UPDATE OVERALL MOOD
+      //UPDATE OVERALL MOOD
       ///////////////////////////////////////////////////////////////////
       this.attendees.forEach((person, index, arr) => {
         if (person.mood === "mood_bad") {
@@ -728,7 +731,9 @@ export default {
         }
       });
 
-      // always sort at the end
+      ///////////////////////////////////////////////////////////////////
+      // SORT THE ARRAY
+      ///////////////////////////////////////////////////////////////////
       if (this.status === "check out") {
         this.attendees.reverse();
       }
@@ -753,11 +758,14 @@ export default {
       }
     });
 
-    function SortByName(x, y) {
-      return x.status === y.status ? 0 : x.status > y.status ? 1 : -1;
-    }
+    // function SortByName(x, y) {
+    //   return x.status === y.status ? 0 : x.status > y.status ? 1 : -1;
+    // }
   },
 
+  ///////////////////////////////////////////////////////////////////
+  // VUE MOUNTED
+  ///////////////////////////////////////////////////////////////////
   mounted: function() {
     this.activeUser = true;
     setTimeout(() => {
@@ -765,7 +773,13 @@ export default {
     }, 500);
   },
 
+  ///////////////////////////////////////////////////////////////////
+  // VUE COMPUTED
+  ///////////////////////////////////////////////////////////////////
   computed: {
+    ///////////////////////////////////////////////////////////////////
+    // UPDATE SIGNAL
+    ///////////////////////////////////////////////////////////////////
     signal_bar: function() {
       let path = "https://ledger.diglife.coop/images/icons/";
       if (this.mood / (this.attendees.length - 1) <= 0) {
@@ -780,6 +794,10 @@ export default {
         return path + "signal_4_bar.png";
       }
     },
+
+    ///////////////////////////////////////////////////////////////////
+    // UPDATE BATTERY
+    ///////////////////////////////////////////////////////////////////
     battery_bar: function() {
       let path = "https://ledger.diglife.coop/images/icons/";
       if (this.battery <= 0) {
@@ -802,7 +820,7 @@ export default {
     }
   },
   ///////////////////////////////////////////////////////////////////////////////
-  //  METHODS - https://vuejs.org/v2/guide/instance.html
+  //  VUE METHODS - https://vuejs.org/v2/guide/instance.html
   ///////////////////////////////////////////////////////////////////////////////
   methods: {
     // SIMPLE FORMATTING OF 00:00
@@ -812,6 +830,9 @@ export default {
         .format("mm:ss");
     },
 
+    ///////////////////////////////////////////////////////////////////
+    // FUNCTION CONFIRM LOGIN
+    ///////////////////////////////////////////////////////////////////
     onConfirm: function() {
       if (!this.username) {
         this.activeUser = true;
@@ -841,7 +862,9 @@ export default {
       }
     },
 
-    // MOST IMPORTANT FUNCTION - "I AM COMPLETE"
+    ///////////////////////////////////////////////////////////////////
+    // FUNCTION "I AM COMPLETE"
+    ///////////////////////////////////////////////////////////////////
     complete: function(person) {
       if (person.status.substring(2) === "standing_by") {
         person.status = "6 invisible";
@@ -900,7 +923,9 @@ export default {
       }
     },
 
-    // ALL ATTENDEES = WAITING
+    ///////////////////////////////////////////////////////////////////
+    // FUNCTION CHECK IN
+    ///////////////////////////////////////////////////////////////////
     check_in: function(meeting) {
       this.parametersRef.update({ status: "check in" });
       this.attendees.forEach((person, index, arr) => {
@@ -916,7 +941,9 @@ export default {
       this.showSnackBar = true;
     },
 
-    // ALL ATTENDEES WAITING IN REVERSE ORDER
+    ///////////////////////////////////////////////////////////////////
+    // FUNCTION CHECK OUT
+    ///////////////////////////////////////////////////////////////////
     check_out: function(meeting) {
       this.parametersRef.update({ status: "check out" });
       this.attendees.forEach((person, index, arr) => {
@@ -935,7 +962,9 @@ export default {
       this.showSnackBar = true;
     },
 
-    // ALL ATTENDEES WAITING IN RANDOM ORDER
+    ///////////////////////////////////////////////////////////////////
+    // FUNCTION RANDOM ROUND
+    ///////////////////////////////////////////////////////////////////
     random_round: function(meeting) {
       this.status = "random";
       this.attendees.forEach((person, index, arr) => {
@@ -955,7 +984,9 @@ export default {
       this.showSnackBar = true;
     },
 
-    // ALL ATTENDEES CAN CALL ANYTIME
+    ///////////////////////////////////////////////////////////////////
+    // FUNCTION PING PONG
+    ///////////////////////////////////////////////////////////////////
     ping_pong: function(meeting) {
       this.parametersRef.update({ status: "ping pong" });
       this.attendees.forEach((person, index, arr) => {
@@ -971,7 +1002,9 @@ export default {
       this.showSnackBar = true;
     },
 
-    // CLEAR ALL ATTENDEE STATUS, BUT NOT TIME
+    ///////////////////////////////////////////////////////////////////
+    // FUNCTION CLEAR (KEEP TIME)
+    ///////////////////////////////////////////////////////////////////
     clear: function(meeting) {
       this.parametersRef.update({ status: "clear out" });
       this.attendees.forEach((person, index, arr) => {
@@ -987,21 +1020,27 @@ export default {
       this.showSnackBar = true;
     },
 
-    // ENABLE BUTTONS
+    ///////////////////////////////////////////////////////////////////
+    // FUNCTION START MEETING
+    ///////////////////////////////////////////////////////////////////
     start_meeting: function(meeting) {
       this.parametersRef.update({ status: "on air" });
       this.snack = "This meeting has started";
       this.showSnackBar = true;
     },
 
-    // DISABLE BUTTONS
+    ///////////////////////////////////////////////////////////////////
+    // FUNCTION END MEETING
+    ///////////////////////////////////////////////////////////////////
     end_meeting: function(meeting) {
       this.parametersRef.update({ status: "ended" });
       this.snack = "This meeting has ended";
       this.showSnackBar = true;
     },
 
-    // BIG BUTTON RAISE HAND
+    ///////////////////////////////////////////////////////////////////
+    // FUNCTION RAISE HAND
+    ///////////////////////////////////////////////////////////////////
     raise_hand: function(name) {
       if (this.attendees[0].name !== this.username) {
         this.attendees.forEach((person, index, arr) => {
@@ -1018,7 +1057,9 @@ export default {
       }
     },
 
-    // BIG BUTTON INTERJECT
+    ///////////////////////////////////////////////////////////////////
+    // FUNCTION INTERJECT - NORMAL AND PING PONG
+    ///////////////////////////////////////////////////////////////////
     interject: function(name) {
       if (this.attendees[0].name !== this.username) {
         this.attendees.forEach((person, index, arr) => {
@@ -1060,14 +1101,18 @@ export default {
       }
     },
 
-    // PICK ONE ATTENDEE TO TALK, GOOD FOR MANUAL UPDATE
+    ///////////////////////////////////////////////////////////////////
+    // FUNCTION APPOINT
+    ///////////////////////////////////////////////////////////////////
     appoint: function(person) {
       this.attendeesRef.child(person.name).update({ status: "1 talking" });
       this.snack = "You have appointed " + person.name + ".";
       this.showSnackBar = true;
     },
 
-    // LOWER HAND
+    ///////////////////////////////////////////////////////////////////
+    // FUNCTION LOWER HAND
+    ///////////////////////////////////////////////////////////////////
     withdraw: function(person) {
       this.attendeesRef.child(person.name).update({ status: "4 listening" });
       this.snack = "You have withdrawn " + person.name + ".";
@@ -1075,7 +1120,9 @@ export default {
       this.action = "reject";
     },
 
-    // AGREE WITH TOPIC
+    ///////////////////////////////////////////////////////////////////
+    // FUNCTION AGREE WITH TOPIC
+    ///////////////////////////////////////////////////////////////////
     on_topic: function(name) {
       this.attendees.forEach((person, index, arr) => {
         //if found, set mood and clear after 1 min
@@ -1087,7 +1134,9 @@ export default {
       this.showSnackBar = true;
     },
 
-    // DISAGREE WITH TOPIC
+    ///////////////////////////////////////////////////////////////////
+    // FUNCTION DISAGREE WITH TOPIC
+    ///////////////////////////////////////////////////////////////////
     off_topic: function(name) {
       this.attendees.forEach((person, index, arr) => {
         //if found, set mood and clear after 1 min
