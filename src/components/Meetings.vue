@@ -744,15 +744,15 @@ export default {
       if (this.status === "random") {
         this.attendees.sort(function(a, b) {
           return (
-            parseInt(a.status.charAt(0)) - parseInt(b.status.charAt(0)) ||
-            a.random_at - b.random_at
+            parseInt(a.status.charAt(0), 10) -
+              parseInt(b.status.charAt(0), 10) || a.random_at - b.random_at
           );
         });
       } else {
         this.attendees.sort(function(a, b) {
           return (
-            parseInt(a.status.charAt(0)) - parseInt(b.status.charAt(0)) ||
-            a.joined_at - b.joined_at
+            parseInt(a.status.charAt(0), 10) -
+              parseInt(b.status.charAt(0), 10) || a.joined_at - b.joined_at
           );
         });
       }
@@ -778,7 +778,7 @@ export default {
   ///////////////////////////////////////////////////////////////////
   computed: {
     ///////////////////////////////////////////////////////////////////
-    // UPDATE SIGNAL
+    // UPDATE SIGNAL - ALWAYS INCLUDE VARS THAT CHANGE DYNAMICALLY!!
     ///////////////////////////////////////////////////////////////////
     signal_bar: function() {
       let path = "https://ledger.diglife.coop/images/icons/";
@@ -843,11 +843,12 @@ export default {
         // cookies are not stored on mobile devices, new prommpt for every session
         //this.$cookies.set("username", this.username);
 
-        // load personal profile from users
+        // load personal profile from users (can be from refresh)
         this.profile = this.attendees.find(user => {
           return user.name === this.username;
         });
         if (this.profile === undefined) {
+          // set new profile
           this.attendeesRef.child(this.username).update({
             name: this.username,
             status: "4 listening",
@@ -914,8 +915,8 @@ export default {
             }
             arr.sort(function(a, b) {
               return (
-                parseInt(a.status.charAt(0)) - parseInt(b.status.charAt(0)) ||
-                a.joined_at - b.joined_at
+                parseInt(a.status.charAt(0), 10) -
+                  parseInt(b.status.charAt(0), 10) || a.joined_at - b.joined_at
               );
             });
           }
@@ -928,7 +929,7 @@ export default {
     ///////////////////////////////////////////////////////////////////
     check_in: function(meeting) {
       this.parametersRef.update({ status: "check in" });
-      this.attendees.forEach((person, index, arr) => {
+      this.attendees.forEach(person => {
         //console.log(person);
         if (person.status.substring(2) !== "standing_by") {
           this.attendeesRef
@@ -946,7 +947,7 @@ export default {
     ///////////////////////////////////////////////////////////////////
     check_out: function(meeting) {
       this.parametersRef.update({ status: "check out" });
-      this.attendees.forEach((person, index, arr) => {
+      this.attendees.forEach(person => {
         //console.log(person);
         if (person.status.substring(2) !== "standing_by") {
           this.attendeesRef
@@ -967,7 +968,7 @@ export default {
     ///////////////////////////////////////////////////////////////////
     random_round: function(meeting) {
       this.status = "random";
-      this.attendees.forEach((person, index, arr) => {
+      this.attendees.forEach(person => {
         //console.log(person);
         if (person.status.substring(2) !== "standing_by") {
           this.attendeesRef.child(person.name).update({
@@ -989,7 +990,7 @@ export default {
     ///////////////////////////////////////////////////////////////////
     ping_pong: function(meeting) {
       this.parametersRef.update({ status: "ping pong" });
-      this.attendees.forEach((person, index, arr) => {
+      this.attendees.forEach(person => {
         //console.log(person);
         if (person.status.substring(2) !== "standing_by") {
           this.attendeesRef
@@ -1007,7 +1008,7 @@ export default {
     ///////////////////////////////////////////////////////////////////
     clear: function(meeting) {
       this.parametersRef.update({ status: "clear out" });
-      this.attendees.forEach((person, index, arr) => {
+      this.attendees.forEach(person => {
         //console.log(person);
         if (person.status.substring(2) !== "standing_by") {
           this.attendeesRef
@@ -1043,7 +1044,7 @@ export default {
     ///////////////////////////////////////////////////////////////////
     raise_hand: function(name) {
       if (this.attendees[0].name !== this.username) {
-        this.attendees.forEach((person, index, arr) => {
+        this.attendees.forEach(person => {
           //console.log(person);
           if (person.name === name) {
             this.attendeesRef
@@ -1062,7 +1063,7 @@ export default {
     ///////////////////////////////////////////////////////////////////
     interject: function(name) {
       if (this.attendees[0].name !== this.username) {
-        this.attendees.forEach((person, index, arr) => {
+        this.attendees.forEach(person => {
           //console.log(person);
           // non-racing case
           if (person.name === name && person.status.substring(2) !== "racing") {
@@ -1124,7 +1125,7 @@ export default {
     // FUNCTION AGREE WITH TOPIC
     ///////////////////////////////////////////////////////////////////
     on_topic: function(name) {
-      this.attendees.forEach((person, index, arr) => {
+      this.attendees.forEach(person => {
         //if found, set mood and clear after 1 min
         if (person.name === name) {
           this.attendeesRef.child(person.name).update({ mood: "mood" });
@@ -1138,7 +1139,7 @@ export default {
     // FUNCTION DISAGREE WITH TOPIC
     ///////////////////////////////////////////////////////////////////
     off_topic: function(name) {
-      this.attendees.forEach((person, index, arr) => {
+      this.attendees.forEach(person => {
         //if found, set mood and clear after 1 min
         if (person.name === name) {
           this.attendeesRef.child(person.name).update({ mood: "mood_bad" });
