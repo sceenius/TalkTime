@@ -105,7 +105,7 @@
 
           <md-menu-content
             class="md-card-menu"
-            style="min-height: 255px !important;"
+            style="height: 325px !important; min-height: 325px !important;"
           >
             <md-menu-item @click="start_meeting();">
               <md-icon>power_settings_new</md-icon>
@@ -145,6 +145,11 @@
             <md-menu-item @click="clear();">
               <md-icon>check_box_outline_blank</md-icon>
               <span>Clear Out</span>
+            </md-menu-item>
+
+            <md-menu-item @click="onLogout();">
+              <md-icon>exit_to_app</md-icon>
+              <span>Logout</span>
             </md-menu-item>
           </md-menu-content>
         </md-menu>
@@ -436,15 +441,15 @@ export default {
       if (this.status === "random") {
         this.attendees.sort(function(a, b) {
           return (
-            parseInt(a.status.charAt(0)) - parseInt(b.status.charAt(0)) ||
-            a.random_at - b.random_at
+            parseInt(a.status.charAt(0), 10) -
+              parseInt(b.status.charAt(0), 10) || a.random_at - b.random_at
           );
         });
       } else {
         this.attendees.sort(function(a, b) {
           return (
-            parseInt(a.status.charAt(0)) - parseInt(b.status.charAt(0)) ||
-            a.joined_at - b.joined_at
+            parseInt(a.status.charAt(0), 10) -
+              parseInt(b.status.charAt(0), 10) || a.joined_at - b.joined_at
           );
         });
       }
@@ -770,10 +775,15 @@ export default {
   // VUE MOUNTED
   ///////////////////////////////////////////////////////////////////
   mounted: function() {
-    this.activeUser = true;
-    setTimeout(() => {
-      this.$refs.focusable.$el.focus();
-    }, 500);
+    if (this.$cookies.get("username")) {
+      this.username = this.$cookies.get("username");
+    } else {
+      this.activeUser = true;
+      // trick to get focus on field
+      setTimeout(() => {
+        this.$refs.focusable.$el.focus();
+      }, 500);
+    }
   },
 
   ///////////////////////////////////////////////////////////////////
@@ -844,7 +854,7 @@ export default {
         document.getElementById("username").classList.remove("md-invalid");
         this.username = this.username.replace("@", "").toLowerCase();
         // cookies are not stored on mobile devices, new prommpt for every session
-        //this.$cookies.set("username", this.username);
+        this.$cookies.set("username", this.username);
 
         // load personal profile from users (can be from refresh)
         this.profile = this.attendees.find(user => {
@@ -864,6 +874,21 @@ export default {
           this.activeUser = false;
         });
       }
+    },
+
+    ///////////////////////////////////////////////////////////////////
+    // FUNCTION LOGOUT
+    ///////////////////////////////////////////////////////////////////
+    onLogout: function() {
+      // Logout
+      this.profile = "";
+      this.username = "";
+      this.$cookies.set("username", "");
+      this.activeUser = true;
+      // trick to get focus on field
+      setTimeout(() => {
+        this.$refs.focusable.$el.focus();
+      }, 500);
     },
 
     ///////////////////////////////////////////////////////////////////
