@@ -834,11 +834,20 @@ export default {
       } else if (this.battery > 0.9) {
         return path + "battery_100.png";
       }
-    }
+    },
     ///////////////////////////////////////////////////////////////////
     // UPDATE SPEAKER BALANCE
     ///////////////////////////////////////////////////////////////////
     //https://derickbailey.com/2014/09/21/calculating-standard-deviation-with-array-map-and-array-reduce-in-javascript/
+    // signal_wifi_0_bar 0-4
+    wifi_bar: function() {
+      let path = "https://ledger.diglife.coop/images/icons/";
+      let talk_time_total = 0;
+      this.attendees.forEach(person => {
+        talk_time_total = talk_time_total + person.talk_time;
+      });
+      return path + "signal_wifi_0_bar.png";
+    }
 
     ///////////////////////////////////////////////////////////////////
     // UPDATE TRAFFIC LIGHT BAR
