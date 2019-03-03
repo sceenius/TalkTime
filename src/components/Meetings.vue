@@ -778,6 +778,7 @@ export default {
   mounted: function() {
     if (this.$cookies.get("username")) {
       this.username = this.$cookies.get("username");
+      // add user to array if not present (eg. switch meeting)
     } else {
       this.activeUser = true;
       // trick to get focus on field
@@ -791,6 +792,8 @@ export default {
   // VUE COMPUTED
   ///////////////////////////////////////////////////////////////////
   computed: {
+    // TODO: RED COLOR FOR LOWEST, YELLOW FOR 1 STEP BEFORE
+
     ///////////////////////////////////////////////////////////////////
     // UPDATE SIGNAL - ALWAYS INCLUDE VARS THAT CHANGE DYNAMICALLY!!
     ///////////////////////////////////////////////////////////////////
@@ -832,6 +835,15 @@ export default {
         return path + "battery_100.png";
       }
     }
+    ///////////////////////////////////////////////////////////////////
+    // UPDATE SPEAKER BALANCE
+    ///////////////////////////////////////////////////////////////////
+    //https://derickbailey.com/2014/09/21/calculating-standard-deviation-with-array-map-and-array-reduce-in-javascript/
+
+    ///////////////////////////////////////////////////////////////////
+    // UPDATE TRAFFIC LIGHT BAR
+    ///////////////////////////////////////////////////////////////////
+    //https://jsfiddle.net/Hunter377/upLe3nLk/1/
   },
   ///////////////////////////////////////////////////////////////////////////////
   //  VUE METHODS - https://vuejs.org/v2/guide/instance.html
