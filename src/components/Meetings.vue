@@ -630,7 +630,7 @@ export default {
         });
 
         this.time = 0; // don't stop the timer, useful for a quiet minute
-        this.attendees.forEach(person => {
+        this.attendees.forEach((person, index, arr) => {
           //console.log(person);
           if (person.status.substring(2) === "invisible") {
             arr[index].status = "0 standing_by";
