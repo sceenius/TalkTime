@@ -34,7 +34,8 @@
     >
       <md-dialog-title
         ><md-icon>timelapse</md-icon> Welcome to<br />&nbsp;&nbsp; &nbsp; &nbsp;
-        Talk Time!</md-dialog-title
+        Ta<span style="position: relative; top: -5px">l</span>k
+        Time!</md-dialog-title
       >
       <div>
         This app is best used on a mobile phone. To get started, please enter
@@ -539,9 +540,9 @@ export default {
       ) {
         // find person and change status
         this.attendees.forEach((person, index, arr) => {
-          //console.log(person);
           if (person.name === data.name) {
-            person.status = "4 listening";
+            person.status = data.status;
+            person.joined_at = data.joined_at;
           }
 
           if (person.status.substring(2) === "invisible") {
@@ -583,7 +584,8 @@ export default {
             person.status.substring(2) !== "standing_by" &&
             person.status.substring(2) !== "talking"
           ) {
-            person.status = "5 racing";
+            person.status = data.status;
+            person.joined_at = data.joined_at;
             person.talk_time = data.talk_time;
           }
         });
@@ -602,7 +604,8 @@ export default {
         this.attendees.forEach((person, index, arr) => {
           //console.log(person);
           if (person.name === data.name) {
-            person.status = "3 waiting";
+            person.status = data.status;
+            person.joined_at = data.joined_at;
           }
         });
       }
@@ -678,9 +681,9 @@ export default {
 
         // find person and change status
         this.attendees.forEach((person, index, arr) => {
-          //console.log(person);
           if (person.name === data.name) {
-            person.status = "2 interjecting";
+            person.status = data.status;
+            person.joined_at = data.joined_at;
           }
         });
       }
