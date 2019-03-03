@@ -492,7 +492,7 @@ export default {
           this.attendees[0].status.substring(2) === "talking" &&
           this.status === "ping pong"
         ) {
-          this.attendees.forEach((person, index, arr) => {
+          this.attendees.forEach(person => {
             if (person.name === data.name) {
               person.status = "5 racing";
               this.attendeesRef
@@ -515,7 +515,7 @@ export default {
 
         // if (this.status !== "check out") {
         // find person and change status
-        this.attendees.forEach((person, index, arr) => {
+        this.attendees.forEach(person => {
           if (person.name === data.name) {
             person.status = data.status;
             person.started = new Date().getTime();
@@ -544,7 +544,7 @@ export default {
         this.status !== "clear out"
       ) {
         // find person and change status
-        this.attendees.forEach((person, index, arr) => {
+        this.attendees.forEach(person => {
           if (person.name === data.name) {
             person.status = data.status;
             person.joined_at = data.joined_at;
@@ -564,7 +564,7 @@ export default {
         this.status === "clear out"
       ) {
         // find person and change status
-        this.attendees.forEach((person, index, arr) => {
+        this.attendees.forEach(person => {
           if (person.status.substring(2) === "invisible") {
             person.status = "0 standing_by";
           } else if (person.status.substring(2) !== "standing_by") {
@@ -582,7 +582,7 @@ export default {
         this.status === "ping pong"
       ) {
         // find person and change status
-        this.attendees.forEach((person, index, arr) => {
+        this.attendees.forEach(person => {
           if (person.status.substring(2) === "invisible") {
             person.status = "0 standing_by";
           } else if (
@@ -606,7 +606,7 @@ export default {
         }
 
         // find person and change status
-        this.attendees.forEach((person, index, arr) => {
+        this.attendees.forEach(person => {
           //console.log(person);
           if (person.name === data.name) {
             person.status = data.status;
@@ -620,7 +620,7 @@ export default {
       ///////////////////////////////////////////////////////////////////
       else if (data.status.substring(2) === "completing") {
         // find person and change status
-        this.attendees.forEach((person, index, arr) => {
+        this.attendees.forEach(person => {
           //console.log(person);
           if (person.name === data.name) {
             // move current talker away
@@ -630,7 +630,7 @@ export default {
         });
 
         this.time = 0; // don't stop the timer, useful for a quiet minute
-        this.attendees.forEach((person, index, arr) => {
+        this.attendees.forEach(person => {
           //console.log(person);
           if (person.status.substring(2) === "invisible") {
             arr[index].status = "0 standing_by";
@@ -668,7 +668,7 @@ export default {
           }
         });
 
-        this.attendees.forEach((person, index, arr) => {
+        this.attendees.forEach(person => {
           //console.log(person);
           if (person.name === data.name) {
             this.attendeesRef.child(person.name).remove();
@@ -685,7 +685,7 @@ export default {
         }
 
         // find person and change status
-        this.attendees.forEach((person, index, arr) => {
+        this.attendees.forEach(person => {
           if (person.name === data.name) {
             person.status = data.status;
             person.joined_at = data.joined_at;
@@ -698,7 +698,7 @@ export default {
       ///////////////////////////////////////////////////////////////////
       this.mood = 0;
       if (data.mood === "mood") {
-        this.attendees.forEach((person, index, arr) => {
+        this.attendees.forEach(person => {
           if (person.name === data.name) {
             person.mood = "mood";
             clearInterval(person.mood_timer);
@@ -715,7 +715,7 @@ export default {
       // PERSON IS OFF TOPIC
       ///////////////////////////////////////////////////////////////////
       else if (data.mood === "mood_bad") {
-        this.attendees.forEach((person, index, arr) => {
+        this.attendees.forEach(person => {
           if (person.name === data.name) {
             person.mood = "mood_bad";
             clearInterval(person.mood_timer);
@@ -731,7 +731,7 @@ export default {
       ///////////////////////////////////////////////////////////////////
       //UPDATE OVERALL MOOD
       ///////////////////////////////////////////////////////////////////
-      this.attendees.forEach((person, index, arr) => {
+      this.attendees.forEach(person => {
         if (person.mood === "mood_bad") {
           this.mood--;
         } else {
