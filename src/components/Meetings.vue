@@ -250,6 +250,7 @@
         <div>ON TOPIC</div></md-button
       >
       <md-button
+        v-long-press="onLongPress"
         @click="off_topic(username);"
         :disabled="
           status === 'not started' ||
@@ -778,7 +779,19 @@ export default {
   mounted: function() {
     if (this.$cookies.get("username")) {
       this.username = this.$cookies.get("username");
-      // add user to array if not present (eg. switch meeting)
+      // enter different meeting and add your profile
+      this.profile = this.attendees.find(user => {
+        return user.name === this.username;
+      });
+      if (this.profile === undefined) {
+        // set new profile
+        this.attendeesRef.child(this.username).update({
+          name: this.username,
+          status: "4 listening",
+          talk_time: 0,
+          joined_at: new Date().getTime()
+        });
+      }
     } else {
       this.activeUser = true;
       // trick to get focus on field
@@ -911,6 +924,13 @@ export default {
       setTimeout(() => {
         this.$refs.focusable.$el.focus();
       }, 500);
+    },
+
+    ///////////////////////////////////////////////////////////////////
+    // FUNCTION LONG PRESS
+    ///////////////////////////////////////////////////////////////////
+    onLongPress: function() {
+      alert("Distress Signal!");
     },
 
     ///////////////////////////////////////////////////////////////////
