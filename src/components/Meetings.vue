@@ -395,7 +395,6 @@ export default {
       ///////////////////////////////////////////////////////////////////
       // PERSON IS TALKING
       ///////////////////////////////////////////////////////////////////
-
       // CASE -= Move talker to the top
       if (data.status.substring(2) === "talking") {
         // move standing_by away
@@ -477,13 +476,18 @@ export default {
     this.attendeesRef.on("child_changed", user => {
       let data = user.val();
 
-      // rethinking this: data will be one user, don't find the user in the array
-      // rather use username as array key!
+      ///////////////////////////////////////////////////////////////////
+      // PERSON IS MOODING
+      ///////////////////////////////////////////////////////////////////
+      // CASE mood button was pressed
+      if (data.mood === "mood" || data.mood === "mood_bad") {
+        // do nothing
+      }
 
       ///////////////////////////////////////////////////////////////////
       // STATUS CHANGE CASE - PERSON IS TALKING
       ///////////////////////////////////////////////////////////////////
-      if (data.status.substring(2) === "talking") {
+      else if (data.status.substring(2) === "talking") {
         // move standing_by away
         if (this.attendees[0].status.substring(2) === "standing_by") {
           this.attendees[0].status = "6 invisible";
@@ -697,6 +701,7 @@ export default {
 
       ///////////////////////////////////////////////////////////////////
       // PERSON IS ON TOPIC
+      // THIS HAS A SIDE EFFECT.... don't change other states
       ///////////////////////////////////////////////////////////////////
       this.mood = 0;
       if (data.mood === "mood") {
@@ -744,10 +749,7 @@ export default {
       ///////////////////////////////////////////////////////////////////
       // SORT THE ARRAY
       ///////////////////////////////////////////////////////////////////
-      if (this.status === "check out") {
-        this.attendees.reverse();
-      }
-      //this.attendees.sort(SortByName);
+
       // this is a brilliant sort function working on 2 keys
       // if the status is the same, it sorts by joined_at
       // https://stackoverflow.com/questions/13211709/javascript-sort-array-by-multiple-number-fields
@@ -879,7 +881,7 @@ export default {
     },
 
     ///////////////////////////////////////////////////////////////////
-    // FUNCTION CONFIRM LOGIN
+    // FUNCTION LOGIN
     ///////////////////////////////////////////////////////////////////
     onConfirm: function() {
       if (!this.username) {
