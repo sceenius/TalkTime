@@ -1332,6 +1332,7 @@ span.md-title {
   background-color: rgba(255, 255, 255, 0.4) !important;
   color: #fff !important;
   margin-left: 15px;
+  height: 30px;
 }
 
 .md-field {
@@ -1363,7 +1364,7 @@ span.md-title {
   background-color: #404040 !important;
   border: 1px solid white;
   color: white !important;
-  height: 86px;
+  height: 90px;
   width: 25%;
   margin: 0px;
 }
