@@ -71,7 +71,7 @@
         TOOLBAR - https://vuematerial.io/components/toolbar/
       ----------------------------------------------------------------------
     -->
-    <md-toolbar :class="['md-primary']">
+    <md-toolbar :class="['md-primary', 'red']">
       <!--
         md-button class="md-icon-button" @click="showNavigation = true;">
           <md-icon>menu</md-icon>
@@ -202,6 +202,10 @@
                 <md-icon>record_voice_over</md-icon>
                 <span>Appoint</span>
               </md-menu-item>
+              <md-menu-item @click="remove(person);">
+                <md-icon>delete</md-icon>
+                <span>Remove</span>
+              </md-menu-item>
             </md-menu-content>
           </md-menu>
         </li>
@@ -210,7 +214,8 @@
 
     <div class="bottom-bar">
       <md-button
-        @click="raise_hand(username);"
+        v-long-press="interject"
+        @mousedown="raise_hand"
         :disabled="
           status === 'not started' ||
             status === 'ended' ||
@@ -221,10 +226,11 @@
         "
         class="bar-button"
         ><md-icon>pan_tool</md-icon>
+        <md-icon class="longpress">warning</md-icon>
         <div>RAISE HAND</div></md-button
       >
       <md-button
-        @click="interject(username);"
+        @mousedown="interject"
         :disabled="
           status === 'not started' ||
             status === 'ended' ||
@@ -237,7 +243,7 @@
         <div>INTERJECT</div></md-button
       >
       <md-button
-        @click="on_topic(username);"
+        @mousedown="on_topic"
         :disabled="
           status === 'not started' ||
             status === 'ended' ||
@@ -251,7 +257,7 @@
       >
       <md-button
         v-long-press="onLongPress"
-        @click="off_topic(username);"
+        @mousedown="off_topic"
         :disabled="
           status === 'not started' ||
             status === 'ended' ||
@@ -260,7 +266,9 @@
             status === 'check out'
         "
         class="bar-button"
-        ><md-icon>mood_bad</md-icon>
+      >
+        <md-icon>mood_bad</md-icon>
+        <md-icon class="longpress">warning</md-icon>
         <div>OFF TOPIC</div></md-button
       >
     </div>
@@ -286,7 +294,6 @@ export default {
     power: false,
     snack: "",
     status: "not started",
-    action: "none",
     topic: "",
     time: 0,
     timer: null,
@@ -735,12 +742,25 @@ export default {
           }
         });
       }
+
+      ///////////////////////////////////////////////////////////////////
+      // PERSON IS IN PANIC
+      ///////////////////////////////////////////////////////////////////
+      else if (data.mood === "mood_panic") {
+        this.attendees.forEach(person => {
+          if (person.name === data.name) {
+            person.mood = "mood_panic";
+          }
+        });
+      }
       ///////////////////////////////////////////////////////////////////
       //UPDATE OVERALL MOOD
       ///////////////////////////////////////////////////////////////////
       this.attendees.forEach(person => {
         if (person.mood === "mood_bad") {
           this.mood--;
+        } else if (person.mood === "mood_panic") {
+          this.mood = -99;
         } else {
           this.mood++;
         }
@@ -883,6 +903,19 @@ export default {
     ///////////////////////////////////////////////////////////////////
     // FUNCTION LOGIN
     ///////////////////////////////////////////////////////////////////
+    onLongPress: function() {
+      this.attendees.forEach(person => {
+        if (person.name === this.username) {
+          person.mood = "mood_panic";
+        }
+      });
+      this.snack = "Emergency protocol initiated.";
+      this.showSnackBar = true;
+    },
+
+    ///////////////////////////////////////////////////////////////////
+    // FUNCTION LOGIN
+    ///////////////////////////////////////////////////////////////////
     onConfirm: function() {
       if (!this.username) {
         this.activeUser = true;
@@ -931,9 +964,7 @@ export default {
     ///////////////////////////////////////////////////////////////////
     // FUNCTION LONG PRESS
     ///////////////////////////////////////////////////////////////////
-    onLongPress: function() {
-      alert("Distress Signal!");
-    },
+    // not used due to Vue acting up on longpress events
 
     ///////////////////////////////////////////////////////////////////
     // FUNCTION "I AM COMPLETE"
@@ -1114,11 +1145,11 @@ export default {
     ///////////////////////////////////////////////////////////////////
     // FUNCTION RAISE HAND
     ///////////////////////////////////////////////////////////////////
-    raise_hand: function(name) {
+    raise_hand: function() {
       if (this.attendees[0].name !== this.username) {
         this.attendees.forEach(person => {
           //console.log(person);
-          if (person.name === name) {
+          if (person.name === this.username) {
             this.attendeesRef
               .child(person.name)
               .update({ status: "3 waiting", joined_at: new Date().getTime() });
@@ -1133,18 +1164,22 @@ export default {
     ///////////////////////////////////////////////////////////////////
     // FUNCTION INTERJECT - NORMAL AND PING PONG
     ///////////////////////////////////////////////////////////////////
-    interject: function(name) {
+    interject: function($event) {
+      $event.preventDefault();
       if (this.attendees[0].name !== this.username) {
         this.attendees.forEach(person => {
           //console.log(person);
           // non-racing case
-          if (person.name === name && person.status.substring(2) !== "racing") {
+          if (
+            person.name === this.username &&
+            person.status.substring(2) !== "racing"
+          ) {
             this.attendeesRef.child(person.name).update({
               status: "2 interjecting",
               joined_at: new Date().getTime()
             });
           } else if (
-            person.name === name &&
+            person.name === this.username &&
             person.status.substring(2) === "racing"
           ) {
             this.failed = false;
@@ -1190,16 +1225,24 @@ export default {
       this.attendeesRef.child(person.name).update({ status: "4 listening" });
       this.snack = "You have withdrawn " + person.name + ".";
       this.showSnackBar = true;
-      this.action = "reject";
+    },
+
+    ///////////////////////////////////////////////////////////////////
+    // FUNCTION REMOVE
+    ///////////////////////////////////////////////////////////////////
+    remove: function(person) {
+      this.attendeesRef.child(person.name).update({ status: "8 deleting" });
+      this.snack = "You have removed " + person.name + ".";
+      this.showSnackBar = true;
     },
 
     ///////////////////////////////////////////////////////////////////
     // FUNCTION AGREE WITH TOPIC
     ///////////////////////////////////////////////////////////////////
-    on_topic: function(name) {
+    on_topic: function() {
       this.attendees.forEach(person => {
         //if found, set mood and clear after 1 min
-        if (person.name === name) {
+        if (person.name === this.username) {
           this.attendeesRef.child(person.name).update({ mood: "mood" });
         }
       });
@@ -1210,10 +1253,10 @@ export default {
     ///////////////////////////////////////////////////////////////////
     // FUNCTION DISAGREE WITH TOPIC
     ///////////////////////////////////////////////////////////////////
-    off_topic: function(name) {
+    off_topic: function() {
       this.attendees.forEach(person => {
         //if found, set mood and clear after 1 min
-        if (person.name === name) {
+        if (person.name === this.username) {
           this.attendeesRef.child(person.name).update({ mood: "mood_bad" });
         }
       });
@@ -1333,6 +1376,16 @@ span.md-title {
   width: 100%;
 }
 
+.bar-button .md-icon.longpress {
+  position: absolute;
+  margin: 0;
+  padding: 0;
+  right: 0px;
+  bottom: 5px;
+  font-size: 1.6em !important;
+  opacity: 0.4;
+}
+
 .bar-button:disabled {
   background-color: #eee !important;
   border: 1px solid white;
@@ -1388,5 +1441,29 @@ span.md-title {
   font-size: 1.3em;
   padding: 30px;
   -webkit-text-fill-color: rgba(255, 255, 255, 1);
+}
+
+#status-bar .red {
+  width: 100%;
+  height: 8px;
+}
+
+.red {
+  animation: glow 800ms ease-out infinite alternate;
+}
+.yellow {
+  border-top: 8px solid #e5c62e;
+}
+.green {
+  border-top: 8px solid #41b883;
+}
+
+@keyframes glow {
+  0% {
+    border-top: 8px solid red;
+  }
+  100% {
+    border-top: 8px solid #404040;
+  }
 }
 </style>

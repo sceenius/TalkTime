@@ -12,7 +12,7 @@ Vue.config.productionTip = false;
 
 Vue.use(VueMaterial);
 Vue.use(VueCookies);
-Vue.use(VueLongPress, { duration: 1000 });
+Vue.use(VueLongPress, { duration: 1000 }); // works only once
 
 new Vue({
   render: h => h(App),
