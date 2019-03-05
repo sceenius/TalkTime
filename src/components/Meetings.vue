@@ -71,7 +71,7 @@
         TOOLBAR - https://vuematerial.io/components/toolbar/
       ----------------------------------------------------------------------
     -->
-    <md-toolbar :class="['md-primary', 'red']">
+    <md-toolbar :class="['md-primary', meeting.status]">
       <!--
         md-button class="md-icon-button" @click="showNavigation = true;">
           <md-icon>menu</md-icon>
@@ -214,6 +214,7 @@
 
     <div class="bottom-bar">
       <md-button
+        v-bind:class="['bar-button', meeting.status]"
         v-long-press="interject"
         @mousedown="raise_hand"
         :disabled="
@@ -224,7 +225,6 @@
             status === 'check out' ||
             status === 'random'
         "
-        class="bar-button"
         ><md-icon>pan_tool</md-icon>
         <md-icon class="longpress">warning</md-icon>
         <div>RAISE HAND</div></md-button
@@ -238,7 +238,7 @@
             status === 'check out' ||
             status === 'random'
         "
-        class="bar-button"
+        v-bind:class="['bar-button', meeting.status]"
         ><md-icon>warning</md-icon>
         <div>INTERJECT</div></md-button
       >
@@ -251,7 +251,7 @@
             status === 'check in' ||
             status === 'check out'
         "
-        class="bar-button"
+        v-bind:class="['bar-button', meeting.status]"
         ><md-icon>mood</md-icon>
         <div>ON TOPIC</div></md-button
       >
@@ -265,7 +265,7 @@
             status === 'check in' ||
             status === 'check out'
         "
-        class="bar-button"
+        v-bind:class="['bar-button', meeting.status]"
       >
         <md-icon>mood_bad</md-icon>
         <md-icon class="longpress">warning</md-icon>
@@ -302,7 +302,7 @@ export default {
     domain: "diglife",
     mood: 0,
     battery: 1,
-    meeting: { duration: 600 },
+    meeting: { duration: 600, status: "green" },
     attendeesRef: "",
     parametersRef: "",
     users: [],
@@ -901,15 +901,23 @@ export default {
     },
 
     ///////////////////////////////////////////////////////////////////
-    // FUNCTION LOGIN
+    // FUNCTION PANIC
     ///////////////////////////////////////////////////////////////////
     onLongPress: function() {
       this.attendees.forEach(person => {
         if (person.name === this.username) {
-          person.mood = "mood_panic";
+          if (person.mood === "mood_panic") {
+            person.mood = "";
+            this.meeting.status = "green";
+            this.snack = "Emergency protocol disabled.";
+          } else {
+            person.mood = "mood_panic";
+            this.meeting.status = "red";
+            this.snack = "Emergency protocol enabled.";
+          }
         }
       });
-      this.snack = "Emergency protocol initiated.";
+
       this.showSnackBar = true;
     },
 
@@ -1355,7 +1363,7 @@ span.md-title {
   background-color: #404040 !important;
   border: 1px solid white;
   color: white !important;
-  height: 80px;
+  height: 86px;
   width: 25%;
   margin: 0px;
 }
@@ -1448,13 +1456,16 @@ span.md-title {
   height: 8px;
 }
 
-.red {
+.red,
+.bar-button.red {
   animation: glow 800ms ease-out infinite alternate;
 }
-.yellow {
+.yellow,
+.bar-button.yellow {
   border-top: 8px solid #e5c62e;
 }
-.green {
+.green,
+.bar-button.green {
   border-top: 8px solid #41b883;
 }
 
