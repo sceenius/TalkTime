@@ -6,7 +6,7 @@
       ----------------------------------------------------------------------
     -->
     <md-snackbar
-      :md-duration="1000"
+      :md-duration="1500"
       :md-active.sync="showSnackBar"
       md-persistent
     >
@@ -230,7 +230,7 @@
         <div>RAISE HAND</div></md-button
       >
       <md-button
-        @mousedown="interject"
+        @mousedown="topic_selector"
         :disabled="
           status === 'not started' ||
             status === 'ended' ||
@@ -239,8 +239,8 @@
             status === 'random'
         "
         v-bind:class="['bar-button', meeting.status]"
-        ><md-icon>warning</md-icon>
-        <div>INTERJECT</div></md-button
+        ><md-icon>group_work </md-icon>
+        <div>TOPICS</div></md-button
       >
       <md-button
         @mousedown="on_topic"
@@ -1151,6 +1151,14 @@ export default {
     },
 
     ///////////////////////////////////////////////////////////////////
+    // FUNCTION TOPIC SELECTOR
+    ///////////////////////////////////////////////////////////////////
+    topic_selector: function() {
+      this.snack = "Coming soon to a meeting near you.";
+      this.showSnackBar = true;
+    },
+
+    ///////////////////////////////////////////////////////////////////
     // FUNCTION RAISE HAND
     ///////////////////////////////////////////////////////////////////
     raise_hand: function() {
@@ -1459,7 +1467,7 @@ span.md-title {
 
 .red,
 .bar-button.red {
-  animation: glow 800ms ease-out infinite alternate;
+  animation: glow 1000ms ease-out infinite alternate;
 }
 .yellow,
 .bar-button.yellow {
@@ -1477,5 +1485,9 @@ span.md-title {
   100% {
     border-top: 8px solid #404040;
   }
+}
+
+.md-snackbar {
+  bottom: 100px !important;
 }
 </style>
