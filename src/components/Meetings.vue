@@ -217,7 +217,7 @@
         v-bind:class="['bar-button', coherence]"
         v-long-press="interject"
         v-touch:longtap="interject"
-        v-touch-class="'touchActive'"
+        v-touch-class="'active'"
         @mousedown="raise_hand"
         :disabled="
           status === 'not started' ||
@@ -260,7 +260,7 @@
       <md-button
         v-long-press="onLongPress"
         v-touch:longtap="onLongPress"
-        v-touch-class="'touchActive'"
+        v-touch-class="'active'"
         @mousedown="off_topic"
         :disabled="
           status === 'not started' ||
