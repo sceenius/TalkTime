@@ -216,6 +216,7 @@
       <md-button
         v-bind:class="['bar-button', meeting.status]"
         v-long-press="interject"
+        v-touch:longtap="interject"
         @mousedown="raise_hand"
         :disabled="
           status === 'not started' ||
@@ -257,6 +258,7 @@
       >
       <md-button
         v-long-press="onLongPress"
+        v-touch:longtap="onLongPress"
         @mousedown="off_topic"
         :disabled="
           status === 'not started' ||
