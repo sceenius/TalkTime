@@ -97,8 +97,19 @@
         >{{ status }}</md-chip
       >
       <div style="position: absolute; right: 0px">
-        <img style="" width="30" v-bind:src="battery_bar" />
-        <img style="" width="30" v-bind:src="signal_bar" />
+        <img title="Remaining talk time" width="30" v-bind:src="battery_bar" />
+        <img
+          title="Topic signal strength"
+          style="margin-left: -5px;"
+          width="30"
+          v-bind:src="signal_bar"
+        />
+        <img
+          title="Balanced talk time"
+          style="margin-left: 3px;"
+          width="30"
+          v-bind:src="wifi_bar"
+        />
 
         <md-menu style="padding: 10px; cursor: pointer;">
           <md-icon md-menu-trigger>more_vert</md-icon>
@@ -297,6 +308,7 @@ export default {
     snack: "",
     status: "not started",
     coherence: "green",
+    variation: 0,
     topic: "",
     time: 0,
     timer: null,
@@ -878,23 +890,45 @@ export default {
       }
     },
     ///////////////////////////////////////////////////////////////////
-    // UPDATE SPEAKER BALANCE
+    // UPDATE COHERENCE
     ///////////////////////////////////////////////////////////////////
-    //https://derickbailey.com/2014/09/21/calculating-standard-deviation-with-array-map-and-array-reduce-in-javascript/
-    // signal_wifi_0_bar 0-4
     wifi_bar: function() {
       let path = "https://ledger.diglife.coop/images/icons/";
-      let talk_time_total = 0;
-      this.attendees.forEach(person => {
-        talk_time_total = talk_time_total + person.talk_time;
+      let timers = [];
+      this.attendees.forEach((person, index, arr) => {
+        if (index) {
+          timers.push(person.talk_time);
+        }
       });
-      return path + "signal_wifi_0_bar.png";
-    }
 
-    ///////////////////////////////////////////////////////////////////
-    // UPDATE TRAFFIC LIGHT BAR
-    ///////////////////////////////////////////////////////////////////
-    //https://jsfiddle.net/Hunter377/upLe3nLk/1/
+      function average(data) {
+        var sum = data.reduce(function(sum, value) {
+          return sum + value;
+        }, 0);
+        return sum / data.length;
+      }
+
+      let avg = average(timers);
+      let variation = timers.map(function(value) {
+        return (value - avg) * (value - avg);
+      });
+
+      let stdDev = Math.sqrt(average(variation));
+
+      console.log(timers, stdDev);
+
+      if (stdDev <= 10) {
+        return path + "wifi_4.png";
+      } else if (stdDev <= 100) {
+        return path + "wifi_3.png";
+      } else if (stdDev <= 1000) {
+        return path + "wifi_2.png";
+      } else if (stdDev <= 2000) {
+        return path + "wifi_1.png";
+      } else if (stdDev <= 8000) {
+        return path + "wifi_0.png";
+      }
+    }
   },
   ///////////////////////////////////////////////////////////////////////////////
   //  VUE METHODS - https://vuejs.org/v2/guide/instance.html
