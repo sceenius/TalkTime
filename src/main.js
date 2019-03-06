@@ -14,7 +14,12 @@ Vue.config.productionTip = false;
 Vue.use(VueMaterial);
 Vue.use(VueCookies);
 Vue.use(VueLongPress, { duration: 1000 }); // works only once
-Vue.use(Vue2TouchEvents);
+Vue.use(Vue2TouchEvents, {
+  disableClick: false,
+  touchClass: "tapAction",
+  tapTolerance: 8,
+  longTapTimeInterval: 1000
+});
 
 new Vue({
   render: h => h(App),

@@ -71,7 +71,7 @@
         TOOLBAR - https://vuematerial.io/components/toolbar/
       ----------------------------------------------------------------------
     -->
-    <md-toolbar :class="['md-primary', meeting.status]">
+    <md-toolbar :class="['md-primary', coherence]">
       <!--
         md-button class="md-icon-button" @click="showNavigation = true;">
           <md-icon>menu</md-icon>
@@ -214,9 +214,10 @@
 
     <div class="bottom-bar">
       <md-button
-        v-bind:class="['bar-button', meeting.status]"
+        v-bind:class="['bar-button', coherence]"
         v-long-press="interject"
         v-touch:longtap="interject"
+        v-touch-class="'touchActive'"
         @mousedown="raise_hand"
         :disabled="
           status === 'not started' ||
@@ -239,7 +240,7 @@
             status === 'check out' ||
             status === 'random'
         "
-        v-bind:class="['bar-button', meeting.status]"
+        v-bind:class="['bar-button', coherence]"
         ><md-icon>group_work </md-icon>
         <div>TOPICS</div></md-button
       >
@@ -252,13 +253,14 @@
             status === 'check in' ||
             status === 'check out'
         "
-        v-bind:class="['bar-button', meeting.status]"
+        v-bind:class="['bar-button', coherence]"
         ><md-icon>mood</md-icon>
         <div>ON TOPIC</div></md-button
       >
       <md-button
         v-long-press="onLongPress"
         v-touch:longtap="onLongPress"
+        v-touch-class="'touchActive'"
         @mousedown="off_topic"
         :disabled="
           status === 'not started' ||
@@ -267,7 +269,7 @@
             status === 'check in' ||
             status === 'check out'
         "
-        v-bind:class="['bar-button', meeting.status]"
+        v-bind:class="['bar-button', coherence]"
       >
         <md-icon>mood_bad</md-icon>
         <md-icon class="longpress">warning</md-icon>
@@ -296,6 +298,7 @@ export default {
     power: false,
     snack: "",
     status: "not started",
+    coherence: "green",
     topic: "",
     time: 0,
     timer: null,
@@ -304,7 +307,7 @@ export default {
     domain: "diglife",
     mood: 0,
     battery: 1,
-    meeting: { duration: 600, status: "green" },
+    duration: 600,
     attendeesRef: "",
     parametersRef: "",
     users: [],
@@ -383,6 +386,8 @@ export default {
       let key = meeting.key;
       if (key === "status") {
         this.status = data;
+      } else if (key === "coherence") {
+        this.coherence = data;
       }
     });
 
@@ -391,6 +396,8 @@ export default {
       let key = meeting.key;
       if (key === "status") {
         this.status = data;
+      } else if (key === "coherence") {
+        this.coherence = data;
       }
     });
 
@@ -542,7 +549,7 @@ export default {
                 this.battery =
                   1 -
                   (this.time + person.talk_time) /
-                    ((this.meeting.duration / this.attendees.length) * 2);
+                    ((this.duration / this.attendees.length) * 2);
               }
             }, 1000);
           }
@@ -910,11 +917,12 @@ export default {
         if (person.name === this.username) {
           if (person.mood === "mood_panic") {
             person.mood = "";
-            this.meeting.status = "green";
+
+            this.parametersRef.update({ coherence: "green" });
             this.snack = "Emergency protocol disabled.";
           } else {
             person.mood = "mood_panic";
-            this.meeting.status = "red";
+            this.parametersRef.update({ coherence: "red" });
             this.snack = "Emergency protocol enabled.";
           }
         }
@@ -1478,6 +1486,10 @@ span.md-title {
 .green,
 .bar-button.green {
   border-top: 8px solid #41b883;
+}
+
+.md-button.bar-button.active {
+  background: #e64d3d !important;
 }
 
 @keyframes glow {

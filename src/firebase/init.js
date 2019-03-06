@@ -10,7 +10,11 @@ var config = {
   storageBucket: "",
   messagingSenderId: "349021451329"
 };
-const firebaseApp = firebase.initializeApp(config);
-//firebaseApp.firestore().settings({ timestampsInSnapshots: true });
 
-export default firebaseApp;
+// const firebaseApp = firebase.initializeApp(config);
+// export default firebaseApp;
+
+// https://github.com/zeit/next.js/issues/1999
+export default (!firebase.apps.length
+  ? firebase.initializeApp(config)
+  : firebase.app());
