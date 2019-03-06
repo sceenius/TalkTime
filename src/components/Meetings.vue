@@ -217,7 +217,6 @@
         v-bind:class="['bar-button', coherence]"
         v-long-press="interject"
         v-touch:longtap="interject"
-        v-touch-class="'active'"
         @mousedown="raise_hand"
         :disabled="
           status === 'not started' ||
@@ -241,8 +240,8 @@
             status === 'random'
         "
         v-bind:class="['bar-button', coherence]"
-        ><md-icon>group_work </md-icon>
-        <div>TOPICS</div></md-button
+        ><md-icon>videocam</md-icon>
+        <div>JOIN CALL</div></md-button
       >
       <md-button
         @mousedown="on_topic"
@@ -260,7 +259,6 @@
       <md-button
         v-long-press="onLongPress"
         v-touch:longtap="onLongPress"
-        v-touch-class="'active'"
         @mousedown="off_topic"
         :disabled="
           status === 'not started' ||
@@ -1488,8 +1486,14 @@ span.md-title {
   border-top: 8px solid #41b883;
 }
 
-.md-button.bar-button.active {
+.bar-button.red:hover {
   background: #e64d3d !important;
+}
+.bar-button.yellow:hover {
+  background: #e5c62e !important;
+}
+.bar-button.green:hover {
+  background: #41b883 !important;
 }
 
 @keyframes glow {
