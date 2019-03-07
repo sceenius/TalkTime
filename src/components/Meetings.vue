@@ -826,7 +826,6 @@ export default {
           }
         }
 
-        console.log(this.profile);
         if (this.profile === undefined) {
           // case: cookie exists and user joins ANOTHER meeting
           this.attendeesRef.child(this.username).update({
@@ -1084,7 +1083,7 @@ export default {
     ///////////////////////////////////////////////////////////////////
     // FUNCTION CHECK IN
     ///////////////////////////////////////////////////////////////////
-    check_in: function(meeting) {
+    check_in: function() {
       this.parametersRef.update({ status: "check in" });
       this.attendees.forEach(person => {
         //console.log(person);
@@ -1102,7 +1101,7 @@ export default {
     ///////////////////////////////////////////////////////////////////
     // FUNCTION CHECK OUT
     ///////////////////////////////////////////////////////////////////
-    check_out: function(meeting) {
+    check_out: function() {
       this.parametersRef.update({ status: "check out" });
       this.attendees.forEach(person => {
         //console.log(person);
@@ -1123,7 +1122,7 @@ export default {
     ///////////////////////////////////////////////////////////////////
     // FUNCTION RANDOM ROUND
     ///////////////////////////////////////////////////////////////////
-    random_round: function(meeting) {
+    random_round: function() {
       this.status = "random";
       this.attendees.forEach(person => {
         //console.log(person);
@@ -1145,7 +1144,7 @@ export default {
     ///////////////////////////////////////////////////////////////////
     // FUNCTION PING PONG
     ///////////////////////////////////////////////////////////////////
-    ping_pong: function(meeting) {
+    ping_pong: function() {
       this.parametersRef.update({ status: "ping pong" });
       this.attendees.forEach(person => {
         //console.log(person);
@@ -1163,7 +1162,7 @@ export default {
     ///////////////////////////////////////////////////////////////////
     // FUNCTION CLEAR (KEEP TIME)
     ///////////////////////////////////////////////////////////////////
-    clear: function(meeting) {
+    clear: function() {
       this.parametersRef.update({ status: "clear out" });
       this.attendees.forEach(person => {
         //console.log(person);
@@ -1181,7 +1180,7 @@ export default {
     ///////////////////////////////////////////////////////////////////
     // FUNCTION START MEETING
     ///////////////////////////////////////////////////////////////////
-    start_meeting: function(meeting) {
+    start_meeting: function() {
       this.parametersRef.update({ status: "on air" });
       this.snack = "This meeting has started";
       this.showSnackBar = true;
@@ -1190,7 +1189,7 @@ export default {
     ///////////////////////////////////////////////////////////////////
     // FUNCTION END MEETING
     ///////////////////////////////////////////////////////////////////
-    end_meeting: function(meeting) {
+    end_meeting: function() {
       this.parametersRef.update({ status: "ended" });
       this.snack = "This meeting has ended";
       this.showSnackBar = true;
