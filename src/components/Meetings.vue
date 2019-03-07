@@ -79,7 +79,7 @@
       -->
       <!-- Show the title and navigation path here -->
       <!-- img src="https://diglife.com/brand/logo_primary.svg" / -->
-      <span class="md-title"> <md-icon>timelapse</md-icon> TALK TIME</span>
+      <span class="md-title"> <md-icon>timelapse</md-icon> TALKTIME</span>
       <md-chip
         v-if="
           status === 'on air' ||
@@ -656,7 +656,7 @@ export default {
           //console.log(person);
           if (person.name === data.name) {
             // move current talker away
-            person.status = "7 completing";
+            person.status = data.status;
             person.talk_time = data.talk_time;
           }
         });
@@ -808,10 +808,6 @@ export default {
         });
       }
     });
-
-    // function SortByName(x, y) {
-    //   return x.status === y.status ? 0 : x.status > y.status ? 1 : -1;
-    // }
   },
 
   ///////////////////////////////////////////////////////////////////
@@ -820,19 +816,29 @@ export default {
   mounted: function() {
     if (this.$cookies.get("username")) {
       this.username = this.$cookies.get("username");
-      // enter different meeting and add your profile
-      this.profile = this.attendees.find(user => {
-        return user.name === this.username;
+
+      // wait for all users to load
+      new Promise(resolve => setTimeout(resolve, 1500)).then(resolve => {
+        // check if profile exists -- NO PROMISE HERE
+        for (var i = 1; i < this.attendees.length; i++) {
+          if (this.attendees[i].name === this.username) {
+            this.profile = this.attendees[i];
+          }
+        }
+
+        console.log(this.profile);
+        if (this.profile === undefined) {
+          // case: cookie exists and user joins ANOTHER meeting
+          this.attendeesRef.child(this.username).update({
+            name: this.username,
+            status: "4 listening",
+            talk_time: 0,
+            joined_at: new Date().getTime()
+          });
+          // case: cookie exists and user has no profile in CURRENT meeting
+        }
       });
-      if (this.profile === undefined) {
-        // set new profile
-        this.attendeesRef.child(this.username).update({
-          name: this.username,
-          status: "4 listening",
-          talk_time: 0,
-          joined_at: new Date().getTime()
-        });
-      }
+      // case: cookie does not exist and user joins meeting
     } else {
       this.activeUser = true;
       // trick to get focus on field
@@ -846,8 +852,6 @@ export default {
   // VUE COMPUTED
   ///////////////////////////////////////////////////////////////////
   computed: {
-    // TODO: RED COLOR FOR LOWEST, YELLOW FOR 1 STEP BEFORE
-
     ///////////////////////////////////////////////////////////////////
     // UPDATE SIGNAL - ALWAYS INCLUDE VARS THAT CHANGE DYNAMICALLY!!
     ///////////////////////////////////////////////////////////////////
