@@ -66,225 +66,242 @@
       </div>
     </md-dialog>
 
-    <!--
-      ----------------------------------------------------------------------
-        TOOLBAR - https://vuematerial.io/components/toolbar/
-      ----------------------------------------------------------------------
-    -->
-    <md-toolbar :class="['md-primary', coherence]">
+    <div
+      id="app"
+      style="position: absolute; top: 0; left: 0; width: 20%;  min-height:100vh; max-height: 100vh; overflow: auto;"
+    >
       <!--
-        md-button class="md-icon-button" @click="showNavigation = true;">
-          <md-icon>menu</md-icon>
-        </md-button
+        ----------------------------------------------------------------------
+          TOOLBAR - https://vuematerial.io/components/toolbar/
+        ----------------------------------------------------------------------
       -->
-      <!-- Show the title and navigation path here -->
-      <!-- img src="https://diglife.com/brand/logo_primary.svg" / -->
-      <span class="md-title"> <md-icon>timelapse</md-icon> TALKTIME</span>
-      <md-chip
-        v-if="
-          status === 'on air' ||
-            status === 'check in' ||
-            status === 'check out' ||
-            status === 'random' ||
-            status === 'ping pong'
-        "
-        style="background-color: #e64d3d !important;"
-        >{{ status }}</md-chip
-      >
-      <md-chip
-        v-else
-        style="background-color: rgba(255, 255, 255, 0.5) !important;"
-        >{{ status }}</md-chip
-      >
-      <div style="position: absolute; right: 0px">
-        <img title="Remaining talk time" width="30" v-bind:src="battery_bar" />
-        <img
-          title="Topic signal strength"
-          style="margin-left: -5px;"
-          width="30"
-          v-bind:src="signal_bar"
-        />
-        <img
-          title="Balanced talk time"
-          style="margin-left: 3px;"
-          width="30"
-          v-bind:src="wifi_bar"
-        />
-
-        <md-menu style="padding: 10px; cursor: pointer;">
-          <md-icon md-menu-trigger>more_vert</md-icon>
-
-          <md-menu-content
-            class="md-card-menu"
-            style="height: 325px !important; min-height: 325px !important;"
-          >
-            <md-menu-item @click="start_meeting();">
-              <md-icon>power_settings_new</md-icon>
-              <span>Start Meeting</span>
-            </md-menu-item>
-
-            <md-menu-item @click="end_meeting();">
-              <md-icon>power_settings_new</md-icon>
-              <span>End Meeting</span>
-            </md-menu-item>
-
-            <md-menu-item @click="settings();">
-              <md-icon>settings_power</md-icon>
-              <span>Settings</span>
-            </md-menu-item>
-
-            <md-menu-item @click="check_in();">
-              <md-icon>update</md-icon>
-              <span>Check-in</span>
-            </md-menu-item>
-
-            <md-menu-item @click="check_out();">
-              <md-icon>update</md-icon>
-              <span>Check-out</span>
-            </md-menu-item>
-
-            <md-menu-item @click="ping_pong();">
-              <md-icon>update</md-icon>
-              <span>Ping Pong</span>
-            </md-menu-item>
-
-            <md-menu-item @click="random_round();">
-              <md-icon>update</md-icon>
-              <span>Random Round</span>
-            </md-menu-item>
-
-            <md-menu-item @click="clear();">
-              <md-icon>check_box_outline_blank</md-icon>
-              <span>Clear Out</span>
-            </md-menu-item>
-
-            <md-menu-item @click="onLogout();">
-              <md-icon>exit_to_app</md-icon>
-              <span>Logout</span>
-            </md-menu-item>
-          </md-menu-content>
-        </md-menu>
-      </div>
-    </md-toolbar>
-
-    <!--
-      ----------------------------------------------------------------------
-        PAGE CONTENT
-      ----------------------------------------------------------------------
-    -->
-    <md-content class="md-scrollbar">
-      <ul>
-        <li
-          v-if="person.status.substring(2) !== 'invisible'"
-          v-for="(person, index) in attendees"
-          :key="index"
-          @click="index === 0 ? complete(person) : null;"
-          v-bind:style="[
-            {
-              backgroundColor: color[person.status.substring(2)],
-              cursor: cursor[person.status.substring(2)]
-            }
-          ]"
+      <md-toolbar :class="['md-primary', coherence]">
+        <!--
+          md-button class="md-icon-button" @click="showNavigation = true;">
+            <md-icon>menu</md-icon>
+          </md-button
+        -->
+        <!-- Show the title and navigation path here -->
+        <!-- img src="https://diglife.com/brand/logo_primary.svg" / -->
+        <span class="md-title"> <md-icon>timelapse</md-icon> TALKTIME</span>
+        <md-chip
+          v-if="
+            status === 'on air' ||
+              status === 'check in' ||
+              status === 'check out' ||
+              status === 'random' ||
+              status === 'ping pong'
+          "
+          style="background-color: #e64d3d !important;"
+          >{{ status }}</md-chip
         >
-          <span
-            style="position: absolute; right: 10px; margin-top: 2px;"
-            v-if="index === 0"
-            >{{ format(time) }}</span
-          >
-          <span
-            style="position: absolute; right: 40px; margin-top: 3px; font-size: 0.8em"
-            v-else
-            >{{ format(person.talk_time) }}</span
-          >
-          <md-icon>{{ icon[person.status.substring(2)] }}</md-icon>
-          {{ person.name }} <md-icon>{{ person.mood }}</md-icon>
-          <md-menu
-            v-if="person.status.substring(2) !== 'talking' && index !== 0"
-            style="padding: 10px; cursor: pointer;"
-          >
+        <md-chip
+          v-else
+          style="background-color: rgba(255, 255, 255, 0.5) !important;"
+          >{{ status }}</md-chip
+        >
+        <div style="position: absolute; right: 0px">
+          <img
+            title="Remaining talk time"
+            width="30"
+            v-bind:src="battery_bar"
+          />
+          <img
+            title="Topic signal strength"
+            style="margin-left: -5px;"
+            width="30"
+            v-bind:src="signal_bar"
+          />
+          <img
+            title="Balanced talk time"
+            style="margin-left: 3px;"
+            width="30"
+            v-bind:src="wifi_bar"
+          />
+
+          <md-menu style="padding: 10px; cursor: pointer;">
             <md-icon md-menu-trigger>more_vert</md-icon>
 
-            <md-menu-content class="md-card-menu">
-              <md-menu-item @click="withdraw(person);">
-                <md-icon>cancel</md-icon>
-                <span>Withdraw</span>
+            <md-menu-content
+              class="md-card-menu"
+              style="height: 325px !important; min-height: 325px !important;"
+            >
+              <md-menu-item @click="start_meeting();">
+                <md-icon>power_settings_new</md-icon>
+                <span>Start Meeting</span>
               </md-menu-item>
-              <md-menu-item @click="appoint(person);">
-                <md-icon>record_voice_over</md-icon>
-                <span>Appoint</span>
+
+              <md-menu-item @click="end_meeting();">
+                <md-icon>power_settings_new</md-icon>
+                <span>End Meeting</span>
               </md-menu-item>
-              <md-menu-item @click="remove(person);">
-                <md-icon>delete</md-icon>
-                <span>Remove</span>
+
+              <md-menu-item @click="settings();">
+                <md-icon>settings_power</md-icon>
+                <span>Settings</span>
+              </md-menu-item>
+
+              <md-menu-item @click="check_in();">
+                <md-icon>update</md-icon>
+                <span>Check-in</span>
+              </md-menu-item>
+
+              <md-menu-item @click="check_out();">
+                <md-icon>update</md-icon>
+                <span>Check-out</span>
+              </md-menu-item>
+
+              <md-menu-item @click="ping_pong();">
+                <md-icon>update</md-icon>
+                <span>Ping Pong</span>
+              </md-menu-item>
+
+              <md-menu-item @click="random_round();">
+                <md-icon>update</md-icon>
+                <span>Random Round</span>
+              </md-menu-item>
+
+              <md-menu-item @click="clear();">
+                <md-icon>check_box_outline_blank</md-icon>
+                <span>Clear Out</span>
+              </md-menu-item>
+
+              <md-menu-item @click="onLogout();">
+                <md-icon>exit_to_app</md-icon>
+                <span>Logout</span>
               </md-menu-item>
             </md-menu-content>
           </md-menu>
-        </li>
-      </ul>
-    </md-content>
+        </div>
+      </md-toolbar>
 
-    <div class="bottom-bar">
-      <md-button
-        v-bind:class="['bar-button', coherence]"
-        v-long-press="interject"
-        v-touch:longtap="interject"
-        @mousedown="raise_hand"
-        :disabled="
-          status === 'not started' ||
-            status === 'ended' ||
-            status === 'ping pong' ||
-            status === 'check in' ||
-            status === 'check out' ||
-            status === 'random'
-        "
-        ><md-icon>pan_tool</md-icon>
-        <md-icon class="longpress">warning</md-icon>
-        <div>RAISE HAND</div></md-button
-      >
-      <md-button
-        @mousedown="topic_selector"
-        :disabled="
-          status === 'not started' ||
-            status === 'ended' ||
-            status === 'check in' ||
-            status === 'check out' ||
-            status === 'random'
-        "
-        v-bind:class="['bar-button', coherence]"
-        ><md-icon>videocam</md-icon>
-        <div>JOIN CALL</div></md-button
-      >
-      <md-button
-        @mousedown="on_topic"
-        :disabled="
-          status === 'not started' ||
-            status === 'ended' ||
-            status === 'ping pong' ||
-            status === 'check in' ||
-            status === 'check out'
-        "
-        v-bind:class="['bar-button', coherence]"
-        ><md-icon>mood</md-icon>
-        <div>ON TOPIC</div></md-button
-      >
-      <md-button
-        v-long-press="onLongPress"
-        v-touch:longtap="onLongPress"
-        @mousedown="off_topic"
-        :disabled="
-          status === 'not started' ||
-            status === 'ended' ||
-            status === 'ping pong' ||
-            status === 'check in' ||
-            status === 'check out'
-        "
-        v-bind:class="['bar-button', coherence]"
-      >
-        <md-icon>mood_bad</md-icon>
-        <md-icon class="longpress">warning</md-icon>
-        <div>OFF TOPIC</div></md-button
-      >
+      <!--
+        ----------------------------------------------------------------------
+          PAGE CONTENT
+        ----------------------------------------------------------------------
+      -->
+      <md-content class="md-scrollbar">
+        <ul>
+          <li
+            v-if="person.status.substring(2) !== 'invisible'"
+            v-for="(person, index) in attendees"
+            :key="index"
+            @click="index === 0 ? complete(person) : null;"
+            v-bind:style="[
+              {
+                backgroundColor: color[person.status.substring(2)],
+                cursor: cursor[person.status.substring(2)]
+              }
+            ]"
+          >
+            <span
+              style="position: absolute; right: 10px; margin-top: 2px;"
+              v-if="index === 0"
+              >{{ format(time) }}</span
+            >
+            <span
+              style="position: absolute; right: 40px; margin-top: 3px; font-size: 0.8em"
+              v-else
+              >{{ format(person.talk_time) }}</span
+            >
+            <md-icon>{{ icon[person.status.substring(2)] }}</md-icon>
+            {{ person.name }} <md-icon>{{ person.mood }}</md-icon>
+            <md-menu
+              v-if="person.status.substring(2) !== 'talking' && index !== 0"
+              style="padding: 10px; cursor: pointer;"
+            >
+              <md-icon md-menu-trigger>more_vert</md-icon>
+
+              <md-menu-content class="md-card-menu">
+                <md-menu-item @click="withdraw(person);">
+                  <md-icon>cancel</md-icon>
+                  <span>Withdraw</span>
+                </md-menu-item>
+                <md-menu-item @click="appoint(person);">
+                  <md-icon>record_voice_over</md-icon>
+                  <span>Appoint</span>
+                </md-menu-item>
+                <md-menu-item @click="remove(person);">
+                  <md-icon>delete</md-icon>
+                  <span>Remove</span>
+                </md-menu-item>
+              </md-menu-content>
+            </md-menu>
+          </li>
+        </ul>
+      </md-content>
+
+      <div class="bottom-bar">
+        <md-button
+          v-bind:class="['bar-button', coherence]"
+          v-long-press="interject"
+          v-touch:longtap="interject"
+          @mousedown="raise_hand"
+          :disabled="
+            status === 'not started' ||
+              status === 'ended' ||
+              status === 'ping pong' ||
+              status === 'check in' ||
+              status === 'check out' ||
+              status === 'random'
+          "
+          ><md-icon>pan_tool</md-icon>
+          <md-icon class="longpress">warning</md-icon>
+          <div>RAISE HAND</div></md-button
+        >
+        <md-button
+          @mousedown="topic_selector"
+          :disabled="
+            status === 'not started' ||
+              status === 'ended' ||
+              status === 'check in' ||
+              status === 'check out' ||
+              status === 'random'
+          "
+          v-bind:class="['bar-button', coherence]"
+          ><md-icon>videocam</md-icon>
+          <div>JOIN CALL</div></md-button
+        >
+        <md-button
+          @mousedown="on_topic"
+          :disabled="
+            status === 'not started' ||
+              status === 'ended' ||
+              status === 'ping pong' ||
+              status === 'check in' ||
+              status === 'check out'
+          "
+          v-bind:class="['bar-button', coherence]"
+          ><md-icon>mood</md-icon>
+          <div>ON TOPIC</div></md-button
+        >
+        <md-button
+          v-long-press="onLongPress"
+          v-touch:longtap="onLongPress"
+          @mousedown="off_topic"
+          :disabled="
+            status === 'not started' ||
+              status === 'ended' ||
+              status === 'ping pong' ||
+              status === 'check in' ||
+              status === 'check out'
+          "
+          v-bind:class="['bar-button', coherence]"
+        >
+          <md-icon>mood_bad</md-icon>
+          <md-icon class="longpress">warning</md-icon>
+          <div>OFF TOPIC</div></md-button
+        >
+      </div>
     </div>
+    <iframe
+      name="theApp"
+      src="https://zoom.us/join"
+      id="theApp"
+      style="position: absolute; top: 0; right: 0; width:80%; min-height:100vh; max-height: 100vh; overflow: auto;"
+      frameborder="0"
+      scrolling="yes"
+    ></iframe>
   </div>
   <!-- END page-container md-layout-column -->
 </template>
@@ -1329,6 +1346,19 @@ export default {
 </script>
 
 <style>
+/*
+   LAYOUT STYLES
+*/
+
+@media only screen and (max-width: 1200px) {
+  #theApp {
+    display: none;
+  }
+  #app {
+    width: 100% !important;
+  }
+}
+
 .md-toolbar {
   background-color: #404040 !important;
 }
