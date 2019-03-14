@@ -1548,6 +1548,24 @@ export default {
   }
 }
 
+@media only screen and (min-width: 1000px) and (max-width: 1400px) {
+  .md-button.bar-button {
+    width: 100% !important;
+  }
+  span.md-title {
+    display: none !important;
+  }
+}
+
+@media only screen and (min-width: 100px) and (max-width: 380px) {
+  .md-button.bar-button {
+    width: 100% !important;
+  }
+  span.md-title {
+    display: none !important;
+  }
+}
+
 #theRoom {
   position: absolute;
   top: 0;
