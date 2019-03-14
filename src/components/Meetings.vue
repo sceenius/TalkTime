@@ -161,7 +161,7 @@
                 <span>Random Round</span>
               </md-menu-item>
 
-              <md-menu-item @click="clear();">
+              <md-menu-item @click="clear_out();">
                 <md-icon>check_box_outline_blank</md-icon>
                 <span>Clear Out</span>
               </md-menu-item>
@@ -250,7 +250,7 @@
           <div>RAISE HAND</div></md-button
         >
         <md-button
-          @mousedown="join_call"
+          @click="join_call"
           :disabled="
             status === 'not started' ||
               status === 'ended' ||
@@ -377,7 +377,7 @@ export default {
     domain: "diglife",
     mood: 0,
     battery: 1,
-    duration: 600,
+    duration: 60 * 60 * 2, //in seconds, default is 2 hrs
     code: "3955362429", //"2085799929",
     attendeesRef: "",
     parametersRef: "",
@@ -667,7 +667,7 @@ export default {
       ///////////////////////////////////////////////////////////////////
       else if (
         data.status.substring(2) === "listening" &&
-        this.status !== "clear out"
+        this.status !== "cleared"
       ) {
         // find person and change status
         this.attendees.forEach(person => {
@@ -687,7 +687,7 @@ export default {
       ///////////////////////////////////////////////////////////////////
       else if (
         data.status.substring(2) === "listening" &&
-        this.status === "clear out"
+        this.status === "cleared"
       ) {
         // find person and change status
         this.attendees.forEach(person => {
@@ -1262,8 +1262,8 @@ export default {
     ///////////////////////////////////////////////////////////////////
     // FUNCTION CLEAR (KEEP TIME)
     ///////////////////////////////////////////////////////////////////
-    clear: function() {
-      this.parametersRef.update({ status: "clear out" });
+    clear_out: function() {
+      this.parametersRef.update({ status: "cleared" });
       this.attendees.forEach(person => {
         //console.log(person);
         if (person.status.substring(2) !== "standing_by") {
@@ -1309,10 +1309,12 @@ export default {
     join_call: function() {
       this.snack = "Starting the video conference now.";
       this.showSnackBar = true;
+
       this.$nextTick(function() {
-        this.activeNote = true;
+        window.open("https://zoom.us/j/2085799929", "_target");
       });
-      //document.getElementById("theRoom").style.display="none"
+      //https://zoom.us/j/2085799929 Diglife
+      //https://zoom.us/j/3955362429 Joachim
     },
 
     ///////////////////////////////////////////////////////////////////
