@@ -250,7 +250,7 @@
           <div>RAISE HAND</div></md-button
         >
         <md-button
-          @mousedown="topic_selector"
+          @mousedown="join_call"
           :disabled="
             status === 'not started' ||
               status === 'ended' ||
@@ -294,11 +294,53 @@
         >
       </div>
     </div>
+    <div id="theRoom" v-if="!activeNote">
+      <!-- MENU BUTTON -->
+      <md-speed-dial>
+        <md-speed-dial-target>
+          <md-icon class="md-morph-initial">add</md-icon>
+          <md-icon class="md-morph-final">close</md-icon>
+        </md-speed-dial-target>
+
+        <md-speed-dial-content>
+          <textarea
+            id="Clipboard"
+            style="position: absolute; opacity: 0; width: 0%; height: 0px;"
+          >
+          </textarea>
+
+          <md-button
+            class="md-icon-button"
+            @click="createNote('plain');"
+            title="Create plain note"
+          >
+            <md-icon>assignment</md-icon>
+          </md-button>
+
+          <md-button
+            class="md-icon-button"
+            @click="createNote('meeting');"
+            title="Create meeting note"
+          >
+            <md-icon>videocam</md-icon>
+          </md-button>
+
+          <md-button
+            class="md-icon-button"
+            @click="createNote('news');"
+            title="Create news note"
+          >
+            <md-icon>date_range</md-icon>
+          </md-button>
+        </md-speed-dial-content>
+      </md-speed-dial>
+      Click Join Call to begin the conference.
+    </div>
     <iframe
       name="theApp"
-      src="https://zoom.us/join"
+      v-if="activeNote"
+      src=""
       id="theApp"
-      style="position: absolute; top: 0; right: 0; width:80%; min-height:100vh; max-height: 100vh; overflow: auto;"
       frameborder="0"
       scrolling="yes"
     ></iframe>
@@ -321,6 +363,7 @@ export default {
     showServices: false,
     showSnackBar: false,
     activeUser: false,
+    activeNote: false,
     power: false,
     snack: "",
     status: "not started",
@@ -335,6 +378,7 @@ export default {
     mood: 0,
     battery: 1,
     duration: 600,
+    code: "3955362429", //"2085799929",
     attendeesRef: "",
     parametersRef: "",
     users: [],
@@ -386,6 +430,17 @@ export default {
     //   "#5C2E91"
     // ]
   }),
+
+  ///////////////////////////////////////////////////////////////////////////////
+  //  COMPUTED - https://vuejs.org/v2/guide/instance.html
+  ///////////////////////////////////////////////////////////////////////////////
+  computed: {
+    // compute v-bind:src for img
+    videoLink: function() {
+      return "https://success.zoom.us/wc/" + this.code + "/join";
+    }
+  },
+
   ///////////////////////////////////////////////////////////////////////////////
   //  CREATED - https://vuejs.org/v2/guide/instance.html
   ///////////////////////////////////////////////////////////////////////////////
@@ -415,6 +470,17 @@ export default {
         this.status = data;
       } else if (key === "coherence") {
         this.coherence = data;
+      } else if (key === "notepad") {
+        this.activeNote = true;
+        this.snack = "Meeting note loaded ready for editing";
+        this.showSnackBar = true;
+
+        this.$nextTick(function() {
+          var element = document.getElementById("theApp");
+          element.src = "about:blank";
+          element.style.display = "block";
+          window.open("https://notepad.diglife.coop/" + data, "theApp");
+        });
       }
     });
 
@@ -425,6 +491,17 @@ export default {
         this.status = data;
       } else if (key === "coherence") {
         this.coherence = data;
+      } else if (key === "notepad") {
+        this.activeNote = true;
+        this.snack = "Meeting note loaded ready for editing";
+        this.showSnackBar = true;
+
+        this.$nextTick(function() {
+          var element = document.getElementById("theApp");
+          element.src = "about:blank";
+          element.style.display = "block";
+          window.open("https://notepad.diglife.coop/" + data.notepad, "theApp");
+        });
       }
     });
 
@@ -1221,6 +1298,18 @@ export default {
     },
 
     ///////////////////////////////////////////////////////////////////
+    // FUNCTION JOIN CALL
+    ///////////////////////////////////////////////////////////////////
+    join_call: function() {
+      this.snack = "Starting the video conference now.";
+      this.showSnackBar = true;
+      this.$nextTick(function() {
+        this.activeNote = true;
+      });
+      //document.getElementById("theRoom").style.display="none"
+    },
+
+    ///////////////////////////////////////////////////////////////////
     // FUNCTION RAISE HAND
     ///////////////////////////////////////////////////////////////////
     raise_hand: function() {
@@ -1340,6 +1429,105 @@ export default {
       });
       this.snack = "Your mood has been registered.";
       this.showSnackBar = true;
+    },
+
+    ///////////////////////////////////////////////////////////////////
+    // FUNCTION CREATE NOTE
+    ///////////////////////////////////////////////////////////////////
+    createNote: function(type) {
+      let clipboard = document.getElementById("Clipboard");
+      switch (type) {
+        case "plain":
+          clipboard.value =
+            "# Title goes here\n" +
+            "## Subtitle goes here\n" +
+            "\nLorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.\n\n" +
+            ":::warning\n" +
+            "###### tags: `plain`" +
+            "\n###### authors: `" +
+            this.$cookies.get("username") +
+            "`\n:::" +
+            "";
+          break;
+        case "meeting":
+          clipboard.value =
+            "#  :video_camera: Meeting Agenda & Notes\n" +
+            "## ```" +
+            Moment().format("LLLL") +
+            "```\n" +
+            ":warning: Please record the call and post the [link to the recording here](https://wherever.com).\n" +
+            "### :eyes: Participants\n" +
+            "Chair:\nScribe:\nAttendees:\nApologies:\n" +
+            "### :heavy_check_mark: Meeting Checklist\n" +
+            "- [x] Did you change access to this file to 'Freely' (top right)?\n" +
+            "- [ ] Did you appoint a chair and note-taker for this meeting?\n" +
+            "- [ ] Did you start the recording and announce the call will be recorded & posted publicly?\n" +
+            "- [ ] Did you allow for short [check-ins and/or check-outs](https://toolbox.hyperisland.com/check-in-questions)?\n" +
+            "- [ ] Did you post the recording and created a link above in the note?\n" +
+            "### :alarm_clock: Meeting Agenda\n" +
+            "- [x] \n" +
+            "- [ ] \n" +
+            "- [ ] \n" +
+            "### :memo: Meeting Notes\n" +
+            "Please update this section during the meeting; you can edit this content concurrently.\n" +
+            "- [x] \n" +
+            "- [ ] \n" +
+            "- [ ] \n" +
+            "### :clapper: Actions & Decisions\n" +
+            "Please record any actions and/or decisions from the meeting; attach names & dates and check off items completed, if possible.\n" +
+            "- [x] \n" +
+            "- [ ] \n" +
+            "- [ ] \n" +
+            ":::warning\n" +
+            "###### tags: `meeting`" +
+            "\n###### authors: `" +
+            this.$cookies.get("username") +
+            "`\n:::" +
+            "";
+          break;
+        case "news":
+          clipboard.value =
+            "#  :newspaper: Newsletter Topics\n" +
+            "Please contribute to our newsletter and fill out one of the sections below.\n" +
+            "### :calendar: Campaign Info\n" +
+            "Launch Date:\nTarget Audience:\nNewsletter Editors:\n" +
+            "### :tada: Topic 1\n" +
+            "Author: ```name```\n" +
+            "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.\n" +
+            "### :tada: Topic 2\n" +
+            "Author: ```name```\n" +
+            "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.\n" +
+            "### :tada: Topic 3\n" +
+            "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.\n" +
+            "Author: ```name```\n" +
+            "### :tada: Topic 4\n" +
+            "Author: ```name```\n" +
+            "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.\n" +
+            ":::warning\n" +
+            "###### tags: `news`" +
+            "\n###### authors: `" +
+            this.$cookies.get("username") +
+            "`\n:::" +
+            "";
+          break;
+        default:
+          break;
+      }
+
+      clipboard.focus();
+      clipboard.select();
+      document.execCommand("copy");
+      this.activeNote = true;
+      this.snack =
+        "Template copied to clipboard. Please paste it into the new file.";
+      this.showSnackBar = true;
+
+      this.$nextTick(function() {
+        var element = document.getElementById("theApp");
+        element.src = "about:blank";
+        element.style.display = "block";
+        window.open("https://notepad.diglife.coop/new", "theApp");
+      });
     }
   }
 };
@@ -1350,8 +1538,9 @@ export default {
    LAYOUT STYLES
 */
 
-@media only screen and (max-width: 1200px) {
-  #theApp {
+@media only screen and (max-width: 1000px) {
+  #theApp,
+  #theRoom {
     display: none;
   }
   #app {
@@ -1359,6 +1548,42 @@ export default {
   }
 }
 
+#theRoom {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 80%;
+  min-height: 100vh;
+  max-height: 100vh;
+  overflow: auto;
+  text-align: center;
+  font-size: 5em;
+  line-height: 1.2em;
+  color: white;
+  padding: 25%;
+  background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.1)),
+    url("https://ledger.diglife.coop/images/talktime/talkTimeSplash.jpg");
+  background-size: cover;
+  background-position: center bottom;
+  background-repeat: no-repeat;
+}
+
+#theApp {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 80%;
+  min-height: 100vh;
+  max-height: 100vh;
+  overflow: auto;
+}
+
+.md-speed-dial {
+  position: absolute !important;
+  bottom: 20px;
+  right: 20px;
+  z-index: 299;
+}
 .md-toolbar {
   background-color: #404040 !important;
 }
@@ -1374,6 +1599,7 @@ span.md-title {
   width: 100%;
   bottom: 80px !important;
   overflow: auto;
+  background-color: #eee !important;
 }
 
 .md-content ul {
