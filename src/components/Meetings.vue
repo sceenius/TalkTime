@@ -294,7 +294,7 @@
         >
       </div>
     </div>
-    <div id="theRoom" v-if="!activeNote">
+    <div id="theRoom" :class="[coherence]" v-if="!activeNote">
       <!-- MENU BUTTON -->
       <md-speed-dial>
         <md-speed-dial-target>
@@ -337,6 +337,7 @@
       Click Join Call to begin the conference.
     </div>
     <iframe
+      :class="[coherence]"
       name="theApp"
       v-if="activeNote"
       src=""
