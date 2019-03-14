@@ -208,7 +208,7 @@
             {{ person.name }} <md-icon>{{ person.mood }}</md-icon>
             <md-menu
               v-if="person.status.substring(2) !== 'talking' && index !== 0"
-              style="padding: 10px; cursor: pointer;"
+              style="padding: 10px;  : pointer;"
             >
               <md-icon md-menu-trigger>more_vert</md-icon>
 
@@ -294,7 +294,7 @@
         >
       </div>
     </div>
-    <div id="theRoom" :class="[coherence]" v-if="!activeNote">
+    <div id="theRoom" v-if="!activeNote">
       <!-- MENU BUTTON -->
       <md-speed-dial>
         <md-speed-dial-target>
@@ -337,7 +337,6 @@
       Click Join Call to begin the conference.
     </div>
     <iframe
-      :class="[coherence]"
       name="theApp"
       v-if="activeNote"
       src=""
@@ -383,9 +382,7 @@ export default {
     attendeesRef: "",
     parametersRef: "",
     users: [],
-    attendees: [
-      { name: "waiting for input...", status: "0 standing_by", talk_time: 0 }
-    ],
+    attendees: [{ name: "waiting..", status: "0 standing_by", talk_time: 0 }],
     icon: {
       standing_by: "access_time", // #0
       talking: "record_voice_over", // #1
@@ -511,6 +508,7 @@ export default {
     ///////////////////////////////////////////////////////////////////
     this.attendeesRef.on("child_added", user => {
       let data = user.val();
+      this.icon["standing_by"] = "access_time";
       //let key = user.key;
 
       ///////////////////////////////////////////////////////////////////
@@ -540,9 +538,10 @@ export default {
           this.attendees[1].status.substring(2) === "waiting" ||
           this.attendees[1].status.substring(2) === "interjecting"
         ) {
-          this.attendees[0].name = "click to continue...";
+          this.attendees[0].name = "continue..";
+          this.icon["standing_by"] = "touch_app";
         } else {
-          this.attendees[0].name = "waiting for input...";
+          this.attendees[0].name = "waiting..";
         }
       }
 
@@ -596,6 +595,7 @@ export default {
     ///////////////////////////////////////////////////////////////////
     this.attendeesRef.on("child_changed", user => {
       let data = user.val();
+      this.icon["standing_by"] = "access_time";
 
       ///////////////////////////////////////////////////////////////////
       // PERSON IS MOODING
@@ -729,7 +729,8 @@ export default {
       ///////////////////////////////////////////////////////////////////
       else if (data.status.substring(2) === "waiting") {
         if (this.attendees[0].status.substring(2) === "standing_by") {
-          this.attendees[0].name = "click to continue...";
+          this.attendees[0].name = "continue..";
+          this.icon["standing_by"] = "touch_app";
         }
 
         // find person and change status
@@ -765,9 +766,10 @@ export default {
               this.attendees[2].status.substring(2) === "waiting" ||
               this.attendees[2].status.substring(2) === "interjecting"
             ) {
-              arr[index].name = "click to continue...";
+              arr[index].name = "continue..";
+              this.icon["standing_by"] = "touch_app";
             } else {
-              arr[index].name = "waiting for input...";
+              arr[index].name = "waiting..";
             }
           }
         });
@@ -788,9 +790,10 @@ export default {
               (this.attendees[2].status.substring(2) === "waiting" ||
                 this.attendees[2].status.substring(2) === "interjecting")
             ) {
-              arr[index].name = "click to continue...";
+              arr[index].name = "continue..";
+              this.icon["standing_by"] = "touch_app";
             } else {
-              arr[index].name = "waiting for input...";
+              arr[index].name = "waiting..";
             }
           }
         });
@@ -808,7 +811,8 @@ export default {
       ///////////////////////////////////////////////////////////////////
       else if (data.status.substring(2) === "interjecting") {
         if (this.attendees[0].status.substring(2) === "standing_by") {
-          this.attendees[0].name = "click to continue...";
+          this.attendees[0].name = "continue..";
+          this.icon["standing_by"] = "touch_app";
         }
 
         // find person and change status
@@ -1160,9 +1164,10 @@ export default {
               (this.attendees[2].status.substring(2) === "waiting" ||
                 this.attendees[2].status.substring(2) === "interjecting")
             ) {
-              arr[index].name = "click to continue...";
+              arr[index].name = "continue..";
+              this.icon["standing_by"] = "touch_app";
             } else {
-              arr[index].name = "waiting for input...";
+              arr[index].name = "waiting..";
             }
             arr.sort(function(a, b) {
               return (
@@ -1546,24 +1551,6 @@ export default {
   }
   #app {
     width: 100% !important;
-  }
-}
-
-@media only screen and (min-width: 1000px) and (max-width: 1400px) {
-  .md-button.bar-button {
-    width: 100% !important;
-  }
-  span.md-title {
-    display: none !important;
-  }
-}
-
-@media only screen and (min-width: 100px) and (max-width: 380px) {
-  .md-button.bar-button {
-    width: 100% !important;
-  }
-  span.md-title {
-    display: none !important;
   }
 }
 
