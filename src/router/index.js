@@ -10,7 +10,10 @@ export default new Router({
     {
       path: "/",
       name: "Meetings",
-      component: Meetings
+      component: Meetings,
+      meta: {
+        title: "TalkTime"
+      }
     },
     {
       path: "/:domain",
