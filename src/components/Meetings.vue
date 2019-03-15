@@ -446,7 +446,10 @@ export default {
     ///////////////////////////////////////////////////////////////////
     // GET PARAM FROM ROUTER
     ///////////////////////////////////////////////////////////////////
-    this.domain = this.$route.params.domain || "gcc";
+    this.domain = this.$route.params.domain || "diglife";
+    if (this.domain === undefined) {
+      alert("You must provide a meeting ID in the URL.");
+    }
 
     ///////////////////////////////////////////////////////////////////
     // SET FIREBASE REFS
@@ -1291,6 +1294,7 @@ export default {
     ///////////////////////////////////////////////////////////////////
     end_meeting: function() {
       this.parametersRef.update({ status: "ended" });
+      this.attendeesRef.remove();
       this.snack = "This meeting has ended";
       this.showSnackBar = true;
     },
@@ -1546,17 +1550,17 @@ export default {
    LAYOUT STYLES
 */
 
-@media only screen and (max-width: 1000px) {
+@media only screen and (max-width: 999px) {
   #theApp,
   #theRoom {
-    display: none;
+    display: none !important;
   }
   #app {
     width: 100% !important;
   }
 }
 
-@media only screen and (min-width: 1000px) and (max-width: 1400px) {
+@media only screen and (min-width: 1000px) and (max-width: 1780px) {
   .md-button.bar-button {
     width: 100% !important;
   }
