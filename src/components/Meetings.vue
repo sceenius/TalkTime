@@ -1633,6 +1633,11 @@ span.md-title {
   bottom: 80px !important;
   overflow: auto;
   background-color: #eee !important;
+  background-image: url("https://diglife.com/brand/logo_secondary.svg");
+  background-size: cover;
+  background-size: 80%;
+  background-position: center center;
+  background-repeat: no-repeat;
 }
 
 .md-content ul {
