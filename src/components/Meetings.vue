@@ -9,6 +9,7 @@
       :md-duration="1500"
       :md-active.sync="showSnackBar"
       md-persistent
+      md-position="left"
     >
       <span>{{ snack }}</span>
       <md-button class="md-primary" @click="showSnackBar = false;"
@@ -294,7 +295,7 @@
         >
       </div>
     </div>
-    <div id="theRoom" v-if="!activeNote">
+    <div id="theRoom" v-if="!activeNote" :class="[coherence]">
       <!-- MENU BUTTON -->
       <md-speed-dial>
         <md-speed-dial-target>
@@ -337,6 +338,7 @@
       Click Join Call to begin the conference.
     </div>
     <iframe
+      :class="[coherence]"
       name="theApp"
       v-if="activeNote"
       src=""
@@ -473,7 +475,7 @@ export default {
         this.coherence = data;
       } else if (key === "notepad") {
         this.activeNote = true;
-        this.snack = "Meeting note loaded ready for editing";
+        this.snack = "Meeting note loaded and ready for editing.";
         this.showSnackBar = true;
 
         this.$nextTick(function() {
@@ -1548,9 +1550,10 @@ export default {
 <style>
 /*
    LAYOUT STYLES
+   HONOR 8 = 1080x1920
 */
 
-@media only screen and (max-width: 999px) {
+@media only screen and (max-width: 1080px) {
   #theApp,
   #theRoom {
     display: none !important;
@@ -1559,8 +1562,8 @@ export default {
     width: 100% !important;
   }
 }
-
-@media only screen and (min-width: 1000px) and (max-width: 1780px) {
+/*
+@media only screen and (max-width: 400px) {
   .md-button.bar-button {
     width: 100% !important;
   }
@@ -1568,8 +1571,8 @@ export default {
     display: none !important;
   }
 }
-
-@media only screen and (min-width: 100px) and (max-width: 380px) {
+*/
+@media only screen and (min-width: 1080px) and (max-width: 1780px) {
   .md-button.bar-button {
     width: 100% !important;
   }
@@ -1830,5 +1833,7 @@ span.md-title {
 
 .md-snackbar {
   bottom: 100px !important;
+  left: 0px !important;
+  width: 20%;
 }
 </style>
