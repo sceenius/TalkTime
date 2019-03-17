@@ -624,19 +624,22 @@ export default {
     ///////////////////////////////////////////////////////////////////
     this.attendeesRef.on("child_changed", user => {
       let data = user.val();
-      this.icon["standing_by"] = "access_time";
 
-      ///////////////////////////////////////////////////////////////////
-      // PERSON IS MOODING
-      ///////////////////////////////////////////////////////////////////
-      // CASE mood button was pressed
-      if (data.mood === "mood_panic") {
+      // retrieve attendee record
+      for (var i = 0; i < this.attendees.length; i++) {
+        if (this.attendees[i].name === data.name) {
+          var attendee = this.attendees[i];
+        }
       }
+      console.log("Action: ", attendee);
+
+      // set defaut icon to clock
+      this.icon["standing_by"] = "access_time";
 
       ///////////////////////////////////////////////////////////////////
       // STATUS CHANGE CASE - PERSON IS TALKING
       ///////////////////////////////////////////////////////////////////
-      else if (data.status.substring(2) === "talking") {
+      if (data.status.substring(2) === "talking") {
         // move standing_by away
         if (this.attendees[0].status.substring(2) === "standing_by") {
           this.attendees[0].status = "6 invisible";
