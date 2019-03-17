@@ -67,6 +67,46 @@
       </div>
     </md-dialog>
 
+    <!--
+      ----------------------------------------------------------------------
+        DIALOG BOXES - SETTINGS DIALOG
+      ----------------------------------------------------------------------
+    -->
+    <md-dialog
+      :md-close-on-esc="false"
+      :md-click-outside-to-close="false"
+      :md-active.sync="activeSetting"
+    >
+      <md-dialog-title
+        ><md-icon>settings_power</md-icon> Meeting Settings</md-dialog-title
+      >
+      <div style="padding: 20px;">
+        You can customize your Talk Time here.<br /><br />
+        <md-field>
+          <label>Video Conference Link</label>
+          <md-input v-model="videoLink" required></md-input>
+          <span class="md-helper-text"></span>
+          <span class="md-error">Please enter a link.</span>
+        </md-field>
+        <md-field>
+          <label>Application Link</label>
+          <md-input v-model="appLink" required></md-input>
+          <span class="md-helper-text"></span>
+          <span class="md-error">Please enter a link.</span>
+        </md-field>
+
+        <md-dialog-actions>
+          <md-button
+            class="md-success md-raised"
+            @click="onConfirmSettings();"
+            style="background: #00B0A0; color: white;"
+            ><md-icon style="color: white;">exit_to_app</md-icon>
+            Save</md-button
+          >
+        </md-dialog-actions>
+      </div>
+    </md-dialog>
+
     <div
       id="app"
       style="position: absolute; top: 0; left: 0; width: 20%;  min-height:100vh; max-height: 100vh; overflow: auto;"
@@ -137,7 +177,7 @@
                 <span>End Meeting</span>
               </md-menu-item>
 
-              <md-menu-item disabled="true" @click="settings();">
+              <md-menu-item @click="activeSetting = true;">
                 <md-icon>settings_power</md-icon>
                 <span>Settings</span>
               </md-menu-item>
@@ -261,7 +301,8 @@
           :disabled="
             status === 'not started' ||
               status === 'ended' ||
-              status === 'random'
+              status === 'random' ||
+              videoLink === ''
           "
           v-bind:class="['bar-button', coherence]"
           ><md-icon>videocam</md-icon>
@@ -295,52 +336,54 @@
         >
       </div>
     </div>
-    <div id="theRoom" v-if="!activeNote" :class="[coherence]">
+    <div id="theRoom" v-if="!activeApp" :class="[coherence]">
       <!-- MENU BUTTON -->
-      <md-speed-dial>
-        <md-speed-dial-target>
-          <md-icon class="md-morph-initial">add</md-icon>
-          <md-icon class="md-morph-final">close</md-icon>
-        </md-speed-dial-target>
+      <!--
+        md-speed-dial>
+          <md-speed-dial-target>
+            <md-icon class="md-morph-initial">add</md-icon>
+            <md-icon class="md-morph-final">close</md-icon>
+          </md-speed-dial-target>
 
-        <md-speed-dial-content>
-          <textarea
-            id="Clipboard"
-            style="position: absolute; opacity: 0; width: 0%; height: 0px;"
-          >
-          </textarea>
+          <md-speed-dial-content>
+            <textarea
+              id="Clipboard"
+              style="position: absolute; opacity: 0; width: 0%; height: 0px;"
+            >
+            </textarea>
 
-          <md-button
-            class="md-icon-button"
-            @click="createNote('plain');"
-            title="Create plain note"
-          >
-            <md-icon>assignment</md-icon>
-          </md-button>
+            <md-button
+              class="md-icon-button"
+              @click="createNote('plain');"
+              title="Create plain note"
+            >
+              <md-icon>assignment</md-icon>
+            </md-button>
 
-          <md-button
-            class="md-icon-button"
-            @click="createNote('meeting');"
-            title="Create meeting note"
-          >
-            <md-icon>videocam</md-icon>
-          </md-button>
+            <md-button
+              class="md-icon-button"
+              @click="createNote('meeting');"
+              title="Create meeting note"
+            >
+              <md-icon>videocam</md-icon>
+            </md-button>
 
-          <md-button
-            class="md-icon-button"
-            @click="createNote('news');"
-            title="Create news note"
-          >
-            <md-icon>date_range</md-icon>
-          </md-button>
-        </md-speed-dial-content>
-      </md-speed-dial>
+            <md-button
+              class="md-icon-button"
+              @click="createNote('news');"
+              title="Create news note"
+            >
+              <md-icon>date_range</md-icon>
+            </md-button>
+          </md-speed-dial-content>
+        </md-speed-dial
+      -->
       Click Join Call to begin the conference.
     </div>
     <iframe
       :class="[coherence]"
       name="theApp"
-      v-if="activeNote"
+      v-if="activeApp"
       src=""
       id="theApp"
       frameborder="0"
@@ -365,7 +408,8 @@ export default {
     showServices: false,
     showSnackBar: false,
     activeUser: false,
-    activeNote: false,
+    activeApp: false,
+    activeSetting: false,
     power: false,
     snack: "",
     status: "not started",
@@ -383,6 +427,8 @@ export default {
     code: "3955362429", //"2085799929",
     attendeesRef: "",
     parametersRef: "",
+    appLink: "",
+    videoLink: "",
     users: [],
     attendees: [{ name: "waiting..", status: "0 standing_by", talk_time: 0 }],
     icon: {
@@ -434,12 +480,7 @@ export default {
   ///////////////////////////////////////////////////////////////////////////////
   //  COMPUTED - https://vuejs.org/v2/guide/instance.html
   ///////////////////////////////////////////////////////////////////////////////
-  computed: {
-    // compute v-bind:src for img
-    videoLink: function() {
-      return "https://success.zoom.us/wc/" + this.code + "/join";
-    }
-  },
+  computed: {},
 
   ///////////////////////////////////////////////////////////////////////////////
   //  CREATED - https://vuejs.org/v2/guide/instance.html
@@ -473,9 +514,13 @@ export default {
         this.status = data;
       } else if (key === "coherence") {
         this.coherence = data;
-      } else if (key === "applink") {
-        this.activeNote = true;
-        this.snack = "Meeting app loaded.";
+      } else if (key === "videoLink") {
+        this.videoLink = data;
+        this.snack = "Video link connected.";
+        this.showSnackBar = true;
+      } else if (key === "appLink") {
+        this.activeApp = true;
+        this.snack = "Meeting app connected.";
         this.showSnackBar = true;
 
         this.$nextTick(function() {
@@ -494,9 +539,13 @@ export default {
         this.status = data;
       } else if (key === "coherence") {
         this.coherence = data;
-      } else if (key === "applink") {
-        this.activeNote = true;
+      } else if (key === "videoLink") {
+        this.videoLink = data;
         this.snack = "Meeting app loaded.";
+        this.showSnackBar = true;
+      } else if (key === "appLink") {
+        this.activeApp = true;
+        this.snack = "Video link connected.";
         this.showSnackBar = true;
 
         this.$nextTick(function() {
@@ -869,7 +918,6 @@ export default {
               //this.attendeesRef.child(person.name).update({ mood: "" });
               person.mood = "";
               this.mood--;
-              alert("----");
               clearInterval(person.mood_timer);
             }, 10000);
           }
@@ -902,10 +950,11 @@ export default {
             clearInterval(person.mood_timer);
           }
         });
-        ///////////////////////////////////////////////////////////////////
-        // PERSON IS NORMAL
-        ///////////////////////////////////////////////////////////////////
-      } else {
+      }
+      ///////////////////////////////////////////////////////////////////
+      // PERSON IS BACK TO NORMAL
+      ///////////////////////////////////////////////////////////////////
+      else {
         this.attendees.forEach(person => {
           if (person.name === data.name) {
             person.mood = "";
@@ -1148,6 +1197,31 @@ export default {
       setTimeout(() => {
         this.$refs.focusable.$el.focus();
       }, 500);
+    },
+
+    ///////////////////////////////////////////////////////////////////
+    // FUNCTION SETTINGS
+    ///////////////////////////////////////////////////////////////////
+    onConfirmSettings: function() {
+      if (!this.videoLink) {
+        this.activeSetting = true;
+        document.getElementById("videoLink").classList.add("md-invalid");
+      } else if (!this.appLink) {
+        this.activeSetting = true;
+        document.getElementById("appLink").classList.add("md-invalid");
+      } else {
+        document.getElementById("videoLink").classList.remove("md-invalid");
+        document.getElementById("appLink").classList.remove("md-invalid");
+
+        this.parametersRef.child(this.domain).update({
+          videoLink: this.videoLink,
+          appLink: this.appLink
+        });
+      }
+
+      this.$nextTick(function() {
+        this.activeSetting = false;
+      });
     },
 
     ///////////////////////////////////////////////////////////////////
@@ -1573,7 +1647,7 @@ export default {
       clipboard.focus();
       clipboard.select();
       document.execCommand("copy");
-      this.activeNote = true;
+      this.activeApp = true;
       this.snack =
         "Template copied to clipboard. Please paste it into the new file.";
       this.showSnackBar = true;
