@@ -73,8 +73,8 @@
       ----------------------------------------------------------------------
     -->
     <md-dialog
-      :md-close-on-esc="false"
-      :md-click-outside-to-close="false"
+      :md-close-on-esc="true"
+      :md-click-outside-to-close="true"
       :md-active.sync="activeSetting"
     >
       <md-dialog-title
@@ -515,6 +515,7 @@ export default {
         this.showSnackBar = true;
       } else if (key === "appLink") {
         this.activeApp = true;
+        this.appLink = data;
         this.snack = "Meeting app connected.";
         this.showSnackBar = true;
 
@@ -540,6 +541,7 @@ export default {
         this.showSnackBar = true;
       } else if (key === "appLink") {
         this.activeApp = true;
+        this.appLink = data;
         this.snack = "Video link connected.";
         this.showSnackBar = true;
 
