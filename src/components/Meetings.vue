@@ -82,13 +82,13 @@
       >
       <div style="padding: 20px;">
         You can customize your Talk Time here.<br /><br />
-        <md-field>
+        <md-field id="videoLink">
           <label>Video Conference Link</label>
           <md-input v-model="videoLink" required></md-input>
           <span class="md-helper-text"></span>
           <span class="md-error">Please enter a link.</span>
         </md-field>
-        <md-field>
+        <md-field id="appLink">
           <label>Application Link</label>
           <md-input v-model="appLink" required></md-input>
           <span class="md-helper-text"></span>
@@ -172,7 +172,7 @@
                 <span>Start Meeting</span>
               </md-menu-item>
 
-              <md-menu-item disabled="true" @click="end_meeting();">
+              <md-menu-item @click="end_meeting();">
                 <md-icon>power_settings_new</md-icon>
                 <span>End Meeting</span>
               </md-menu-item>
@@ -192,17 +192,17 @@
                 <span>Check-out</span>
               </md-menu-item>
 
-              <md-menu-item disabled="true" @click="ping_pong();">
+              <md-menu-item @click="ping_pong();">
                 <md-icon>update</md-icon>
                 <span>Ping Pong</span>
               </md-menu-item>
 
-              <md-menu-item disabled="true" @click="random_round();">
+              <md-menu-item @click="random_round();">
                 <md-icon>update</md-icon>
                 <span>Random Round</span>
               </md-menu-item>
 
-              <md-menu-item disabled="true" @click="clear_out();">
+              <md-menu-item @click="clear_out();">
                 <md-icon>check_box_outline_blank</md-icon>
                 <span>Clear Out</span>
               </md-menu-item>
@@ -478,11 +478,6 @@ export default {
   }),
 
   ///////////////////////////////////////////////////////////////////////////////
-  //  COMPUTED - https://vuejs.org/v2/guide/instance.html
-  ///////////////////////////////////////////////////////////////////////////////
-  computed: {},
-
-  ///////////////////////////////////////////////////////////////////////////////
   //  CREATED - https://vuejs.org/v2/guide/instance.html
   ///////////////////////////////////////////////////////////////////////////////
   created: function() {
@@ -490,7 +485,7 @@ export default {
     // GET PARAM FROM ROUTER
     ///////////////////////////////////////////////////////////////////
     this.domain = this.$route.params.domain || "diglife";
-    if (this.domain === undefined) {
+    if (this.domain === "") {
       alert("You must provide a meeting ID in the URL.");
     }
 
@@ -1210,6 +1205,7 @@ export default {
         this.activeSetting = true;
         document.getElementById("appLink").classList.add("md-invalid");
       } else {
+        this.activeSetting = false;
         document.getElementById("videoLink").classList.remove("md-invalid");
         document.getElementById("appLink").classList.remove("md-invalid");
 
@@ -1218,10 +1214,6 @@ export default {
           appLink: this.appLink
         });
       }
-
-      this.$nextTick(function() {
-        this.activeSetting = false;
-      });
     },
 
     ///////////////////////////////////////////////////////////////////
@@ -1423,7 +1415,7 @@ export default {
       this.showSnackBar = true;
 
       this.$nextTick(function() {
-        window.open("https://zoom.us/j/2085799929", "_target");
+        window.open(this.videoLink, "_target");
       });
       //https://zoom.us/j/2085799929 Diglife
       //https://zoom.us/j/3955362429 Joachim
