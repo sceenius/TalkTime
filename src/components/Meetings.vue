@@ -1209,7 +1209,7 @@ export default {
         document.getElementById("videoLink").classList.remove("md-invalid");
         document.getElementById("appLink").classList.remove("md-invalid");
 
-        this.parametersRef.child(this.domain).update({
+        this.parametersRef.update({
           videoLink: this.videoLink,
           appLink: this.appLink
         });
