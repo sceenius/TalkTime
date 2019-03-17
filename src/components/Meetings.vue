@@ -132,12 +132,12 @@
                 <span>Start Meeting</span>
               </md-menu-item>
 
-              <md-menu-item @click="end_meeting();">
+              <md-menu-item disabled="true" @click="end_meeting();">
                 <md-icon>power_settings_new</md-icon>
                 <span>End Meeting</span>
               </md-menu-item>
 
-              <md-menu-item @click="settings();">
+              <md-menu-item disabled="true" @click="settings();">
                 <md-icon>settings_power</md-icon>
                 <span>Settings</span>
               </md-menu-item>
@@ -152,17 +152,17 @@
                 <span>Check-out</span>
               </md-menu-item>
 
-              <md-menu-item @click="ping_pong();">
+              <md-menu-item disabled="true" @click="ping_pong();">
                 <md-icon>update</md-icon>
                 <span>Ping Pong</span>
               </md-menu-item>
 
-              <md-menu-item @click="random_round();">
+              <md-menu-item disabled="true" @click="random_round();">
                 <md-icon>update</md-icon>
                 <span>Random Round</span>
               </md-menu-item>
 
-              <md-menu-item @click="clear_out();">
+              <md-menu-item disabled="true" @click="clear_out();">
                 <md-icon>check_box_outline_blank</md-icon>
                 <span>Clear Out</span>
               </md-menu-item>
@@ -206,7 +206,11 @@
               >{{ format(person.talk_time) }}</span
             >
             <md-icon>{{ icon[person.status.substring(2)] }}</md-icon>
-            {{ person.name }} <md-icon>{{ person.mood }}</md-icon>
+            {{ person.name }}
+            <md-icon v-if="person.mood !== 'mood_panic'">{{
+              person.mood
+            }}</md-icon>
+            <md-icon v-if="person.mood === 'mood_panic'">healing</md-icon>
             <md-menu
               v-if="person.status.substring(2) !== 'talking' && index !== 0"
               style="padding: 10px;  : pointer;"
@@ -216,7 +220,11 @@
               <md-menu-content class="md-card-menu">
                 <md-menu-item @click="withdraw(person);">
                   <md-icon>cancel</md-icon>
-                  <span>Withdraw</span>
+                  <span>Lower Hand</span>
+                </md-menu-item>
+                <md-menu-item @click="end_distress(person);">
+                  <md-icon>healing</md-icon>
+                  <span>End Distress</span>
                 </md-menu-item>
                 <md-menu-item @click="appoint(person);">
                   <md-icon>record_voice_over</md-icon>
@@ -242,8 +250,6 @@
             status === 'not started' ||
               status === 'ended' ||
               status === 'ping pong' ||
-              status === 'check in' ||
-              status === 'check out' ||
               status === 'random'
           "
           ><md-icon>pan_tool</md-icon>
@@ -255,8 +261,6 @@
           :disabled="
             status === 'not started' ||
               status === 'ended' ||
-              status === 'check in' ||
-              status === 'check out' ||
               status === 'random'
           "
           v-bind:class="['bar-button', coherence]"
@@ -264,13 +268,11 @@
           <div>JOIN CALL</div></md-button
         >
         <md-button
-          @mousedown="on_topic"
+          @click="on_topic"
           :disabled="
             status === 'not started' ||
               status === 'ended' ||
-              status === 'ping pong' ||
-              status === 'check in' ||
-              status === 'check out'
+              status === 'ping pong'
           "
           v-bind:class="['bar-button', coherence]"
           ><md-icon>mood</md-icon>
@@ -283,9 +285,7 @@
           :disabled="
             status === 'not started' ||
               status === 'ended' ||
-              status === 'ping pong' ||
-              status === 'check in' ||
-              status === 'check out'
+              status === 'ping pong'
           "
           v-bind:class="['bar-button', coherence]"
         >
@@ -400,10 +400,10 @@ export default {
       talking: "#2ccd70",
       interjecting: "#e64d3d",
       waiting: "#3598db",
-      listening: "#ccc",
+      listening: "rgba(180,180,180,0.6)",
       racing: "#e5c62e",
       hiding: "",
-      completing: "#ccc"
+      completing: "rgba(180,180,180,0.6)"
     },
     cursor: {
       standing_by: "pointer",
@@ -473,16 +473,16 @@ export default {
         this.status = data;
       } else if (key === "coherence") {
         this.coherence = data;
-      } else if (key === "notepad") {
+      } else if (key === "applink") {
         this.activeNote = true;
-        this.snack = "Meeting note loaded and ready for editing.";
+        this.snack = "Meeting app loaded.";
         this.showSnackBar = true;
 
         this.$nextTick(function() {
           var element = document.getElementById("theApp");
           element.src = "about:blank";
           element.style.display = "block";
-          window.open("https://notepad.diglife.coop/" + data, "theApp");
+          window.open(data, "theApp");
         });
       }
     });
@@ -494,16 +494,16 @@ export default {
         this.status = data;
       } else if (key === "coherence") {
         this.coherence = data;
-      } else if (key === "notepad") {
+      } else if (key === "applink") {
         this.activeNote = true;
-        this.snack = "Meeting note loaded ready for editing";
+        this.snack = "Meeting app loaded.";
         this.showSnackBar = true;
 
         this.$nextTick(function() {
           var element = document.getElementById("theApp");
           element.src = "about:blank";
           element.style.display = "block";
-          window.open("https://notepad.diglife.coop/" + data.notepad, "theApp");
+          window.open(data, "theApp");
         });
       }
     });
@@ -560,6 +560,30 @@ export default {
 
       this.attendees.push(data);
 
+      // // this is a brilliant sort function working on 2 keys
+      // // if the status is the same, it sorts by joined_at
+      // // https://stackoverflow.com/questions/13211709/javascript-sort-array-by-multiple-number-fields
+      // if (this.status === "random") {
+      //   this.attendees.sort(function(a, b) {
+      //     return (
+      //       parseInt(a.status.charAt(0), 10) -
+      //         parseInt(b.status.charAt(0), 10) || a.random_at - b.random_at
+      //     );
+      //   });
+      // } else {
+      //   this.attendees.sort(function(a, b) {
+      //     return (
+      //       parseInt(a.status.charAt(0), 10) -
+      //         parseInt(b.status.charAt(0), 10) || a.joined_at - b.joined_at
+      //     );
+      //   });
+      // }
+    });
+
+    ///////////////////////////////////////////////////////////////////
+    // ONGOING SORTING  ELIMINATE RACE CONDITIONS
+    ///////////////////////////////////////////////////////////////////
+    setInterval(() => {
       // this is a brilliant sort function working on 2 keys
       // if the status is the same, it sorts by joined_at
       // https://stackoverflow.com/questions/13211709/javascript-sort-array-by-multiple-number-fields
@@ -578,7 +602,7 @@ export default {
           );
         });
       }
-    });
+    }, 500);
 
     ///////////////////////////////////////////////////////////////////
     // FIREBASE CHILD REMOVED EVENTS
@@ -606,8 +630,7 @@ export default {
       // PERSON IS MOODING
       ///////////////////////////////////////////////////////////////////
       // CASE mood button was pressed
-      if (data.mood === "mood" || data.mood === "mood_bad") {
-        // do nothing
+      if (data.mood === "mood_panic") {
       }
 
       ///////////////////////////////////////////////////////////////////
@@ -840,9 +863,10 @@ export default {
             person.mood = "mood";
             clearInterval(person.mood_timer);
             person.mood_timer = setInterval(() => {
-              this.attendeesRef.child(person.name).update({ mood: "" });
+              //this.attendeesRef.child(person.name).update({ mood: "" });
               person.mood = "";
               this.mood--;
+              alert("----");
               clearInterval(person.mood_timer);
             }, 10000);
           }
@@ -857,7 +881,7 @@ export default {
             person.mood = "mood_bad";
             clearInterval(person.mood_timer);
             person.mood_timer = setInterval(() => {
-              this.attendeesRef.child(person.name).update({ mood: "" });
+              //this.attendeesRef.child(person.name).update({ mood: "" });
               person.mood = "";
               this.mood++;
               clearInterval(person.mood_timer);
@@ -865,7 +889,6 @@ export default {
           }
         });
       }
-
       ///////////////////////////////////////////////////////////////////
       // PERSON IS IN PANIC
       ///////////////////////////////////////////////////////////////////
@@ -873,9 +896,21 @@ export default {
         this.attendees.forEach(person => {
           if (person.name === data.name) {
             person.mood = "mood_panic";
+            clearInterval(person.mood_timer);
+          }
+        });
+        ///////////////////////////////////////////////////////////////////
+        // PERSON IS NORMAL
+        ///////////////////////////////////////////////////////////////////
+      } else {
+        this.attendees.forEach(person => {
+          if (person.name === data.name) {
+            person.mood = "";
+            clearInterval(person.mood_timer);
           }
         });
       }
+
       ///////////////////////////////////////////////////////////////////
       //UPDATE OVERALL MOOD
       ///////////////////////////////////////////////////////////////////
@@ -896,21 +931,21 @@ export default {
       // this is a brilliant sort function working on 2 keys
       // if the status is the same, it sorts by joined_at
       // https://stackoverflow.com/questions/13211709/javascript-sort-array-by-multiple-number-fields
-      if (this.status === "random") {
-        this.attendees.sort(function(a, b) {
-          return (
-            parseInt(a.status.charAt(0), 10) -
-              parseInt(b.status.charAt(0), 10) || a.random_at - b.random_at
-          );
-        });
-      } else {
-        this.attendees.sort(function(a, b) {
-          return (
-            parseInt(a.status.charAt(0), 10) -
-              parseInt(b.status.charAt(0), 10) || a.joined_at - b.joined_at
-          );
-        });
-      }
+      // if (this.status === "random") {
+      //   this.attendees.sort(function(a, b) {
+      //     return (
+      //       parseInt(a.status.charAt(0), 10) -
+      //         parseInt(b.status.charAt(0), 10) || a.random_at - b.random_at
+      //     );
+      //   });
+      // } else {
+      //   this.attendees.sort(function(a, b) {
+      //     return (
+      //       parseInt(a.status.charAt(0), 10) -
+      //         parseInt(b.status.charAt(0), 10) || a.joined_at - b.joined_at
+      //     );
+      //   });
+      // }
     });
   },
 
@@ -1022,7 +1057,7 @@ export default {
 
       let stdDev = Math.sqrt(average(variation));
 
-      console.log(timers, stdDev);
+      //console.log(timers, stdDev);
 
       if (stdDev <= 10) {
         return path + "wifi_4.png";
@@ -1054,20 +1089,14 @@ export default {
     onLongPress: function() {
       this.attendees.forEach(person => {
         if (person.name === this.username) {
-          if (person.mood === "mood_panic") {
-            person.mood = "";
-
-            this.parametersRef.update({ coherence: "green" });
-            this.snack = "Emergency protocol disabled.";
-          } else {
-            person.mood = "mood_panic";
-            this.parametersRef.update({ coherence: "red" });
-            this.snack = "Emergency protocol enabled.";
-          }
+          //person.mood = "mood_panic";
+          clearInterval(person.mood_timer);
+          this.attendeesRef.child(this.username).update({ mood: "mood_panic" });
+          this.parametersRef.update({ coherence: "red" });
+          this.snack = "Emergency protocol enabled.";
+          this.showSnackBar = true;
         }
       });
-
-      this.showSnackBar = true;
     },
 
     ///////////////////////////////////////////////////////////////////
@@ -1287,7 +1316,7 @@ export default {
     ///////////////////////////////////////////////////////////////////
     start_meeting: function() {
       this.parametersRef.update({ status: "on air" });
-      this.snack = "This meeting has started";
+      this.snack = "This meeting has started.";
       this.showSnackBar = true;
     },
 
@@ -1297,7 +1326,7 @@ export default {
     end_meeting: function() {
       this.parametersRef.update({ status: "ended" });
       this.attendeesRef.remove();
-      this.snack = "This meeting has ended";
+      this.snack = "This meeting has ended.";
       this.showSnackBar = true;
     },
 
@@ -1405,6 +1434,16 @@ export default {
     withdraw: function(person) {
       this.attendeesRef.child(person.name).update({ status: "4 listening" });
       this.snack = "You have withdrawn " + person.name + ".";
+      this.showSnackBar = true;
+    },
+
+    ///////////////////////////////////////////////////////////////////
+    // FUNCTION END DISTRESS
+    ///////////////////////////////////////////////////////////////////
+    end_distress: function(person) {
+      this.attendeesRef.child(person.name).update({ mood: "" });
+      this.parametersRef.update({ coherence: "green" });
+      this.snack = "Emergency protocol disabled.";
       this.showSnackBar = true;
     },
 
