@@ -424,7 +424,6 @@ export default {
     mood: 0,
     battery: 1,
     duration: 60 * 60 * 2, //in seconds, default is 2 hrs
-    code: "3955362429", //"2085799929",
     attendeesRef: "",
     parametersRef: "",
     appLink: "",
@@ -560,7 +559,6 @@ export default {
     this.attendeesRef.on("child_added", user => {
       let data = user.val();
       this.icon["standing_by"] = "access_time";
-      //let key = user.key;
 
       ///////////////////////////////////////////////////////////////////
       // PERSON IS TALKING
@@ -570,14 +568,6 @@ export default {
         // move standing_by away
         if (this.attendees[0].status.substring(2) === "standing_by") {
           this.attendees[0].status = "6 invisible";
-        }
-
-        // move current talker away
-        else if (this.attendees[0].status.substring(2) === "talking") {
-          this.attendees[0].status = "7 completing";
-          this.attendeesRef
-            .child(this.attendees[0].name)
-            .update(this.attendees[0]);
         }
       }
 
@@ -602,28 +592,9 @@ export default {
       } else {
         this.mood++;
       }
+
       // add  data to users array
-
       this.attendees.push(data);
-
-      // // this is a brilliant sort function working on 2 keys
-      // // if the status is the same, it sorts by joined_at
-      // // https://stackoverflow.com/questions/13211709/javascript-sort-array-by-multiple-number-fields
-      // if (this.status === "random") {
-      //   this.attendees.sort(function(a, b) {
-      //     return (
-      //       parseInt(a.status.charAt(0), 10) -
-      //         parseInt(b.status.charAt(0), 10) || a.random_at - b.random_at
-      //     );
-      //   });
-      // } else {
-      //   this.attendees.sort(function(a, b) {
-      //     return (
-      //       parseInt(a.status.charAt(0), 10) -
-      //         parseInt(b.status.charAt(0), 10) || a.joined_at - b.joined_at
-      //     );
-      //   });
-      // }
     });
 
     ///////////////////////////////////////////////////////////////////
@@ -677,7 +648,7 @@ export default {
           var attendee = this.attendees[i];
         }
       }
-      console.log("Action: ", attendee);
+      //console.log("Action: ", attendee);
 
       // set defaut icon to clock
       this.icon["standing_by"] = "access_time";
@@ -916,7 +887,7 @@ export default {
               person.mood = "";
               this.mood--;
               clearInterval(person.mood_timer);
-            }, 10000);
+            }, 60 * 2 * 1000);
           }
         });
       }
@@ -933,7 +904,7 @@ export default {
               person.mood = "";
               this.mood++;
               clearInterval(person.mood_timer);
-            }, 10000);
+            }, 60 * 2 * 1000);
           }
         });
       }
@@ -972,29 +943,6 @@ export default {
           this.mood++;
         }
       });
-
-      ///////////////////////////////////////////////////////////////////
-      // SORT THE ARRAY
-      ///////////////////////////////////////////////////////////////////
-
-      // this is a brilliant sort function working on 2 keys
-      // if the status is the same, it sorts by joined_at
-      // https://stackoverflow.com/questions/13211709/javascript-sort-array-by-multiple-number-fields
-      // if (this.status === "random") {
-      //   this.attendees.sort(function(a, b) {
-      //     return (
-      //       parseInt(a.status.charAt(0), 10) -
-      //         parseInt(b.status.charAt(0), 10) || a.random_at - b.random_at
-      //     );
-      //   });
-      // } else {
-      //   this.attendees.sort(function(a, b) {
-      //     return (
-      //       parseInt(a.status.charAt(0), 10) -
-      //         parseInt(b.status.charAt(0), 10) || a.joined_at - b.joined_at
-      //     );
-      //   });
-      // }
     });
   },
 
