@@ -704,12 +704,7 @@ export default {
       ///////////////////////////////////////////////////////////////////
       switch (attendee.status.substring(2)) {
         case "talking":
-          if (isWaiting) {
-            visible.status = "6 invisible";
-          } else {
-            invisible.status = "0 standing_by";
-          }
-
+          visible.status = "6 invisible";
           attendee.started = new Date().getTime();
           this.time = 0;
           clearInterval(this.timer);
@@ -725,6 +720,9 @@ export default {
           break;
 
         case "completing":
+          if (!isWaiting) {
+            invisible.status = "0 standing_by";
+          }
           console.log("----");
           break;
 
@@ -1083,6 +1081,9 @@ export default {
         this.attendees[1].status.substring(2) === "waiting" ||
         this.attendees[1].status.substring(2) === "interjecting";
 
+      var isTalkingName = this.attendees[0].name;
+      var isWaitingName = this.attendees[1].name;
+
       var nextstatus = "7 completing";
       if (this.status === "check out") {
         nextstatus = "8 deleting";
@@ -1091,24 +1092,20 @@ export default {
       }
       if (isWaiting && isTalking) {
         this.time = 0;
-        this.attendeesRef.child(this.attendees[0].name).update({
+        this.attendeesRef.child(isTalkingName).update({
           status: nextstatus,
           talk_time: person.talk_time + this.time
         });
-        this.attendeesRef
-          .child(this.attendees[1].name)
-          .update({ status: "1 talking" });
+        this.attendeesRef.child(isWaitingName).update({ status: "1 talking" });
         console.log("1");
       } else if (isWaiting && !isTalking) {
         this.time = 0;
-        this.attendeesRef
-          .child(this.attendees[1].name)
-          .update({ status: "1 talking" });
+        this.attendeesRef.child(isWaitingName).update({ status: "1 talking" });
 
         console.log("2");
       } else if (!isWaiting && isTalking) {
         this.time = 0;
-        this.attendeesRef.child(this.attendees[0].name).update({
+        this.attendeesRef.child(isTalkingName).update({
           status: nextstatus,
           talk_time: person.talk_time + this.time
         });
