@@ -39,8 +39,7 @@
         Time!</md-dialog-title
       >
       <div>
-        This app is best used on a mobile phone. To get started, please enter
-        your username.<br /><br />
+        To get started, please enter your username.<br /><br />
         <md-field id="username">
           <label style=" color: white;">Name</label>
           <md-input
@@ -595,15 +594,8 @@ export default {
 
       // add  data to users array
       this.attendees.push(data);
-    });
 
-    ///////////////////////////////////////////////////////////////////
-    // ONGOING SORTING  ELIMINATE RACE CONDITIONS
-    ///////////////////////////////////////////////////////////////////
-    setInterval(() => {
-      // this is a brilliant sort function working on 2 keys
-      // if the status is the same, it sorts by joined_at
-      // https://stackoverflow.com/questions/13211709/javascript-sort-array-by-multiple-number-fields
+      //sort
       if (this.status === "random") {
         this.attendees.sort(function(a, b) {
           return (
@@ -619,7 +611,31 @@ export default {
           );
         });
       }
-    }, 500);
+    });
+
+    ///////////////////////////////////////////////////////////////////
+    // ONGOING SORTING  ELIMINATE RACE CONDITIONS
+    ///////////////////////////////////////////////////////////////////
+    // setInterval(() => {
+    //   // this is a brilliant sort function working on 2 keys
+    //   // if the status is the same, it sorts by joined_at
+    //   // https://stackoverflow.com/questions/13211709/javascript-sort-array-by-multiple-number-fields
+    //   if (this.status === "random") {
+    //     this.attendees.sort(function(a, b) {
+    //       return (
+    //         parseInt(a.status.charAt(0), 10) -
+    //           parseInt(b.status.charAt(0), 10) || a.random_at - b.random_at
+    //       );
+    //     });
+    //   } else {
+    //     this.attendees.sort(function(a, b) {
+    //       return (
+    //         parseInt(a.status.charAt(0), 10) -
+    //           parseInt(b.status.charAt(0), 10) || a.joined_at - b.joined_at
+    //       );
+    //     });
+    //   }
+    // }, 500);
 
     ///////////////////////////////////////////////////////////////////
     // FIREBASE CHILD REMOVED EVENTS
@@ -644,6 +660,7 @@ export default {
 
       // retrieve attendee record
       var attendee = {};
+      var speaker = {};
       var invisible = {};
       var visible = {};
       var isWaiting = false;
@@ -656,6 +673,8 @@ export default {
           invisible = this.attendees[i];
         } else if (this.attendees[i].status === "0 standing_by") {
           visible = this.attendees[i];
+        } else if (this.attendees[i].status === "1 talking") {
+          speaker = this.attendees[i];
         } else if (
           this.attendees[i].status === "3 waiting" ||
           this.attendees[i].status === "2 interjecting"
@@ -663,7 +682,10 @@ export default {
           isWaiting = true;
         }
       }
-      console.log(isWaiting);
+      // console.log("speaker: ", speaker);
+      // console.log("attendee: ", attendee);
+      // console.log("invisible: ", invisible);
+      // console.log("visible: ", visible);
       //adjusting text on top bar
       if (isWaiting) {
         visible.name = "continue..";
@@ -674,39 +696,46 @@ export default {
         invisible.name = "waiting..";
         this.icon["standing_by"] = "access_time";
       }
-      console.log(visible.name);
-
+      console.log(attendee);
       ///////////////////////////////////////////////////////////////////
       // SWITCH STATUS
       ///////////////////////////////////////////////////////////////////
       switch (attendee.status.substring(2)) {
         case "talking":
+          // visible.status = "6 invisible";
+
+          // if (this.status === "ping pong") {
+          //   speaker.status = "5 racing";
+          // } else {
+          //   speaker.status = "7 completing";
+          // }
+          // this.attendeesRef.child(speaker.name).update(speaker);
           // move standing_by away
-          if (this.attendees[0].status.substring(2) === "standing_by") {
-            this.attendees[0].status = "6 invisible";
-          }
+          // if (this.attendees[0].status.substring(2) === "standing_by") {
+          //   this.attendees[0].status = "6 invisible";
+          // }
 
           // move current talker away
-          else if (
-            this.attendees[0].status.substring(2) === "talking" &&
-            this.status !== "ping pong"
-          ) {
-            this.attendees[0].status = "7 completing";
-            this.attendeesRef
-              .child(this.attendees[0].name)
-              .update(this.attendees[0]);
-          }
+          // if (
+          //   this.attendees[0].status.substring(2) === "talking" &&
+          //   this.status !== "ping pong"
+          // ) {
+          //   this.attendees[0].status = "7 completing";
+          //   this.attendeesRef
+          //     .child(this.attendees[0].name)
+          //     .update(this.attendees[0]);
+          // }
 
-          // revert current talker - was not fast enough
-          else if (
-            this.attendees[0].status.substring(2) === "talking" &&
-            this.status === "ping pong"
-          ) {
-            attendee.status = "5 racing";
-            this.attendeesRef
-              .child(attendee.name)
-              .update({ status: "5 racing" });
-          }
+          // // revert current talker - was not fast enough
+          // else if (
+          //   this.attendees[0].status.substring(2) === "talking" &&
+          //   this.status === "ping pong"
+          // ) {
+          //   attendee.status = "5 racing";
+          //   this.attendeesRef
+          //     .child(attendee.name)
+          //     .update({ status: "5 racing" });
+          // }
 
           //change status and start timer
           //attendee.status = data.status;
@@ -725,7 +754,6 @@ export default {
           break;
 
         case "completing":
-          this.time = 0;
           break;
 
         case "listening":
@@ -1046,8 +1074,25 @@ export default {
         } else {
           this.mood++;
         }
-      });
-    });
+      }); // mood
+
+      //sort
+      if (this.status === "random") {
+        this.attendees.sort(function(a, b) {
+          return (
+            parseInt(a.status.charAt(0), 10) -
+              parseInt(b.status.charAt(0), 10) || a.random_at - b.random_at
+          );
+        });
+      } else {
+        this.attendees.sort(function(a, b) {
+          return (
+            parseInt(a.status.charAt(0), 10) -
+              parseInt(b.status.charAt(0), 10) || a.joined_at - b.joined_at
+          );
+        });
+      }
+    }); //child_changed
   },
 
   ///////////////////////////////////////////////////////////////////
@@ -1280,62 +1325,110 @@ export default {
     ///////////////////////////////////////////////////////////////////
     complete: function(person) {
       //console.log(">>>", person);
-      if (person.status.substring(2) === "standing_by") {
-        person.status = "6 invisible";
-      } else if (this.attendees[1].status.substring(2) === "racing") {
-        this.attendeesRef.child(person.name).update({
-          status: "5 racing",
-          talk_time: person.talk_time + this.time
-        });
-      } else if (this.status === "check out") {
-        // remove participant
-        this.attendeesRef.child(person.name).update({
-          status: "8 deleting"
-        });
+
+      var isTalking = this.attendees[0].status.substring(2) === "talking";
+      var isWaiting =
+        this.attendees[1].status.substring(2) === "waiting" ||
+        this.attendees[1].status.substring(2) === "interjecting";
+
+      if (this.status === "check out") {
+        var nextstatus = "8 deleting";
+      } else if (this.status === "ping pong") {
+        var nextstatus = "5 racing";
       } else {
-        // complete participant
-        this.attendeesRef.child(person.name).update({
-          status: "7 completing",
-          talk_time: person.talk_time + this.time
-        });
+        var nextstatus = "7 completing";
       }
 
-      // CASE: next person is waiting to be called
-      if (
-        this.attendees[1].status.substring(2) === "waiting" ||
-        this.attendees[1].status.substring(2) === "interjecting"
-      ) {
-        //this.attendees[0].status = "6 invisible";
+      if (isWaiting && isTalking) {
+        this.time = 0;
+        this.attendeesRef.child(person.name).update({
+          status: nextstatus,
+          talk_time: person.talk_time + this.time
+        });
         this.attendeesRef
           .child(this.attendees[1].name)
           .update({ status: "1 talking" });
-
-        // CASE: nobody is waiting to be called, put standing_by back
-      } else {
-        this.time = 0; // don't stop the timer, useful for a quiet minute
+      } else if (isWaiting && !isTalking) {
+        this.time = 0;
+        this.attendeesRef
+          .child(this.attendees[1].name)
+          .update({ status: "1 talking" });
+        this.attendees[0].status = "6 invisible";
+      } else if (!isWaiting && isTalking) {
+        this.time = 0;
+        this.attendeesRef.child(person.name).update({
+          status: nextstatus,
+          talk_time: person.talk_time + this.time
+        });
         this.attendees.forEach((person, index, arr) => {
-          //console.log(person);
           if (person.status.substring(2) === "invisible") {
-            arr[index].status = "0 standing_by";
-            // if (
-            //   this.attendees[2] &&
-            //   (this.attendees[2].status.substring(2) === "waiting" ||
-            //     this.attendees[2].status.substring(2) === "interjecting")
-            // ) {
-            //   arr[index].name = "continue..";
-            //   this.icon["standing_by"] = "touch_app";
-            // } else {
-            //   arr[index].name = "waiting..";
-            // }
-            // arr.sort(function(a, b) {
-            //   return (
-            //     parseInt(a.status.charAt(0), 10) -
-            //       parseInt(b.status.charAt(0), 10) || a.joined_at - b.joined_at
-            //   );
-            // });
+            person.status = "0 standing_by";
           }
         });
+      } else {
+        // do nothing
       }
+
+      // if (
+      //   person.status.substring(2) === "standing_by" &&
+      //   this.attendees[1].status.substring(2) !== "waiting" &&
+      //   this.attendees[1].status.substring(2) !== "interjecting"
+      // ) {
+      //   person.status = "6 invisible";
+      // } else if (this.status === "ping pong") {
+      //   this.attendeesRef.child(person.name).update({
+      //     status: "5 racing",
+      //     talk_time: person.talk_time + this.time
+      //   });
+      // } else if (this.status === "check out") {
+      //   // remove participant
+      //   this.attendeesRef.child(person.name).update({
+      //     status: "8 deleting"
+      //   });
+      // } else {
+      //   // complete participant
+      //   this.attendeesRef.child(person.name).update({
+      //     status: "7 completing",
+      //     talk_time: person.talk_time + this.time
+      //   });
+      // }
+
+      // // CASE: next person is waiting to be called
+      // if (
+      //   this.attendees[1].status.substring(2) === "waiting" ||
+      //   this.attendees[1].status.substring(2) === "interjecting"
+      // ) {
+      //   //this.attendees[0].status = "6 invisible";
+      //   this.attendeesRef
+      //     .child(this.attendees[1].name)
+      //     .update({ status: "1 talking" });
+
+      //   // CASE: nobody is waiting to be called, put standing_by back
+      // } else {
+      //   this.time = 0; // don't stop the timer, useful for a quiet minute
+      //   this.attendees.forEach((person, index, arr) => {
+      //     //console.log(person);
+      //     if (person.status.substring(2) === "invisible") {
+      //       arr[index].status = "0 standing_by";
+      //       // if (
+      //       //   this.attendees[2] &&
+      //       //   (this.attendees[2].status.substring(2) === "waiting" ||
+      //       //     this.attendees[2].status.substring(2) === "interjecting")
+      //       // ) {
+      //       //   arr[index].name = "continue..";
+      //       //   this.icon["standing_by"] = "touch_app";
+      //       // } else {
+      //       //   arr[index].name = "waiting..";
+      //       // }
+      //       // arr.sort(function(a, b) {
+      //       //   return (
+      //       //     parseInt(a.status.charAt(0), 10) -
+      //       //       parseInt(b.status.charAt(0), 10) || a.joined_at - b.joined_at
+      //       //   );
+      //       // });
+      //     }
+      //   });
+      //  }
     },
 
     ///////////////////////////////////////////////////////////////////
