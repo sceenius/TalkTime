@@ -660,7 +660,6 @@ export default {
 
       // retrieve attendee record
       var attendee = {};
-      var speaker = {};
       var invisible = {};
       var visible = {};
       var isWaiting = false;
@@ -673,8 +672,6 @@ export default {
           invisible = this.attendees[i];
         } else if (this.attendees[i].status === "0 standing_by") {
           visible = this.attendees[i];
-        } else if (this.attendees[i].status === "1 talking") {
-          speaker = this.attendees[i];
         } else if (
           this.attendees[i].status === "3 waiting" ||
           this.attendees[i].status === "2 interjecting"
@@ -682,11 +679,7 @@ export default {
           isWaiting = true;
         }
       }
-      // console.log("speaker: ", speaker);
-      // console.log("attendee: ", attendee);
-      // console.log("invisible: ", invisible);
-      // console.log("visible: ", visible);
-      //adjusting text on top bar
+
       if (isWaiting) {
         visible.name = "continue..";
         invisible.name = "continue..";
@@ -698,7 +691,6 @@ export default {
         this.icon["standing_by"] = "access_time";
         this.cursor["standing_by"] = "default";
       }
-      console.log(this.attendees);
       ///////////////////////////////////////////////////////////////////
       // SWITCH STATUS
       ///////////////////////////////////////////////////////////////////
@@ -721,17 +713,23 @@ export default {
 
         case "completing":
           if (!isWaiting) {
+            this.time = 0;
             invisible.status = "0 standing_by";
           }
-          console.log("----");
           break;
 
         case "listening":
-          invisible.status = "0 standing_by";
+          if (!isWaiting) {
+            this.time = 0;
+            invisible.status = "0 standing_by";
+          }
           break;
 
         case "racing":
-          invisible.status = "0 standing_by";
+          if (!isWaiting) {
+            this.time = 0;
+            invisible.status = "0 standing_by";
+          }
           break;
 
         case "waiting":
@@ -741,7 +739,10 @@ export default {
 
         case "deleting":
           this.time = 0; // don't stop the timer, useful for a quiet minute
-          invisible.status = "0 standing_by";
+          if (!isWaiting) {
+            this.time = 0;
+            invisible.status = "0 standing_by";
+          }
           this.attendeesRef.child(attendee.name).remove();
           break;
 
@@ -1091,29 +1092,20 @@ export default {
         nextstatus = "5 racing";
       }
       if (isWaiting && isTalking) {
-        this.time = 0;
         this.attendeesRef.child(isTalkingName).update({
           status: nextstatus,
-          talk_time: person.talk_time + this.time
+          talk_time: this.attendees[0].talk_time + this.time
         });
         this.attendeesRef.child(isWaitingName).update({ status: "1 talking" });
-        console.log("1");
       } else if (isWaiting && !isTalking) {
-        this.time = 0;
         this.attendeesRef.child(isWaitingName).update({ status: "1 talking" });
-
-        console.log("2");
       } else if (!isWaiting && isTalking) {
-        this.time = 0;
         this.attendeesRef.child(isTalkingName).update({
           status: nextstatus,
-          talk_time: person.talk_time + this.time
+          talk_time: this.attendees[0].talk_time + this.time
         });
-
-        console.log("3");
       } else {
         // do nothing
-        console.log("4");
       }
 
       //sort
