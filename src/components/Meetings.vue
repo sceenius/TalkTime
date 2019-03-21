@@ -81,6 +81,28 @@
       >
       <div style="padding: 20px;">
         You can customize your Talk Time here.<br /><br />
+
+        <md-field id="menutitle">
+          <label>Title</label>
+          <md-input v-model="menutitle" required></md-input>
+          <span class="md-helper-text">Enter the title of this Menu Entry</span>
+          <span class="md-error">This field cannot be blank</span>
+        </md-field>
+
+        <md-field>
+          <label>Icon</label>
+          <md-input v-model="menuicon" required></md-input>
+          <span class="md-helper-text"
+            >Pick an icon
+            <a
+              href="https://material.io/tools/icons/?style=baseline"
+              target="icons"
+              >from this list</a
+            ></span
+          >
+          <span class="md-error"></span>
+          <md-icon>{{ menuicon }}</md-icon>
+        </md-field>
         <md-field id="videoLink">
           <label>Video Conference Link</label>
           <md-input v-model="videoLink" required></md-input>
@@ -336,49 +358,19 @@
       </div>
     </div>
     <div id="theRoom" v-if="!activeApp" :class="[coherence]">
-      <!-- MENU BUTTON -->
-      <!--
-        md-speed-dial>
-          <md-speed-dial-target>
-            <md-icon class="md-morph-initial">add</md-icon>
-            <md-icon class="md-morph-final">close</md-icon>
-          </md-speed-dial-target>
-
-          <md-speed-dial-content>
-            <textarea
-              id="Clipboard"
-              style="position: absolute; opacity: 0; width: 0%; height: 0px;"
-            >
-            </textarea>
-
-            <md-button
-              class="md-icon-button"
-              @click="createNote('plain');"
-              title="Create plain note"
-            >
-              <md-icon>assignment</md-icon>
-            </md-button>
-
-            <md-button
-              class="md-icon-button"
-              @click="createNote('meeting');"
-              title="Create meeting note"
-            >
-              <md-icon>videocam</md-icon>
-            </md-button>
-
-            <md-button
-              class="md-icon-button"
-              @click="createNote('news');"
-              title="Create news note"
-            >
-              <md-icon>date_range</md-icon>
-            </md-button>
-          </md-speed-dial-content>
-        </md-speed-dial
-      -->
-      Click Join Call to begin the conference.
+      <div id="actions">
+        <md-button
+          title="Add Menu Entry"
+          @click="activeSetting = true;"
+          class="md-fab md-mini md-plain"
+        >
+          <md-icon>add</md-icon>
+        </md-button>
+      </div>
+      <p v-if="videoLink">Click Join Call to begin the conference.</p>
+      <p v-if="!videoLink">Please set up the video conference link.</p>
     </div>
+
     <iframe
       :class="[coherence]"
       name="theApp"
@@ -409,6 +401,8 @@ export default {
     activeUser: false,
     activeApp: false,
     activeSetting: false,
+    menutitle: "",
+    menuicon: "",
     power: false,
     snack: "",
     status: "not started",
@@ -761,57 +755,41 @@ export default {
       ///////////////////////////////////////////////////////////////////
       this.mood = 0;
       if (data.mood === "mood") {
-        this.attendees.forEach(person => {
-          if (person.name === data.name) {
-            person.mood = "mood";
-            clearInterval(person.mood_timer);
-            person.mood_timer = setInterval(() => {
-              //this.attendeesRef.child(person.name).update({ mood: "" });
-              person.mood = "";
-              this.mood--;
-              clearInterval(person.mood_timer);
-            }, 60 * 2 * 1000);
-          }
-        });
+        attendee.mood = "mood";
+        clearInterval(attendee.mood_timer);
+        attendee.mood_timer = setInterval(() => {
+          //this.attendeesRef.child(person.name).update({ mood: "" });
+          attendee.mood = "";
+          this.mood--;
+          clearInterval(attendee.mood_timer);
+        }, 60 * 2 * 1000);
       }
       ///////////////////////////////////////////////////////////////////
       // PERSON IS OFF TOPIC
       ///////////////////////////////////////////////////////////////////
       else if (data.mood === "mood_bad") {
-        this.attendees.forEach(person => {
-          if (person.name === data.name) {
-            person.mood = "mood_bad";
-            clearInterval(person.mood_timer);
-            person.mood_timer = setInterval(() => {
-              //this.attendeesRef.child(person.name).update({ mood: "" });
-              person.mood = "";
-              this.mood++;
-              clearInterval(person.mood_timer);
-            }, 60 * 2 * 1000);
-          }
-        });
+        attendee.mood = "mood_bad";
+        clearInterval(attendee.mood_timer);
+        attendee.mood_timer = setInterval(() => {
+          //this.attendeesRef.child(person.name).update({ mood: "" });
+          attendee.mood = "";
+          this.mood++;
+          clearInterval(attendee.mood_timer);
+        }, 60 * 2 * 1000);
       }
       ///////////////////////////////////////////////////////////////////
       // PERSON IS IN PANIC
       ///////////////////////////////////////////////////////////////////
       else if (data.mood === "mood_panic") {
-        this.attendees.forEach(person => {
-          if (person.name === data.name) {
-            person.mood = "mood_panic";
-            clearInterval(person.mood_timer);
-          }
-        });
+        attendee.mood = "mood_panic";
+        clearInterval(attendee.mood_timer);
       }
       ///////////////////////////////////////////////////////////////////
       // PERSON IS BACK TO NORMAL
       ///////////////////////////////////////////////////////////////////
       else {
-        this.attendees.forEach(person => {
-          if (person.name === data.name) {
-            person.mood = "";
-            clearInterval(person.mood_timer);
-          }
-        });
+        attendee.mood = "";
+        clearInterval(attendee.mood_timer);
       }
 
       ///////////////////////////////////////////////////////////////////
@@ -850,6 +828,8 @@ export default {
   // VUE MOUNTED
   ///////////////////////////////////////////////////////////////////
   mounted: function() {
+    document.title = "TalkTime";
+
     if (this.$cookies.get("username")) {
       this.username = this.$cookies.get("username");
 
@@ -1060,6 +1040,8 @@ export default {
         document.getElementById("appLink").classList.remove("md-invalid");
 
         this.parametersRef.update({
+          menutitle: this.menutitle,
+          menuicon: this.menuicon,
           videoLink: this.videoLink,
           appLink: this.appLink
         });
@@ -1756,6 +1738,13 @@ span.md-title {
 #status-bar .red {
   width: 100%;
   height: 8px;
+}
+
+#actions {
+  position: absolute;
+  width: 40px;
+  bottom: 25%;
+  right: 15px;
 }
 
 .red,

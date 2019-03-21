@@ -20,7 +20,7 @@ export default new Router({
       name: "Meetings",
       component: Meetings,
       meta: {
-        title: "Talk Time"
+        title: "TalkTime"
       }
     }
   ]
