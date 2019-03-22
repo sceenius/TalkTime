@@ -35,8 +35,7 @@
         <md-icon>timelapse</md-icon>Welcome to
         <br>&nbsp;&nbsp; &nbsp; &nbsp;
         Ta
-        <span style="position: relative; top: -5px">l</span>k
-        Time!
+        <span style="position: relative; top: -5px">l</span>k Time!
       </md-dialog-title>
       <div>To get started, please enter your username.
         <br>
@@ -125,30 +124,17 @@
       :md-active.sync="activeApplication"
     >
       <md-dialog-title>
-        <md-icon>settings_power</md-icon>Add Application
+        <md-icon>settings_power</md-icon>{{mode}} Application
       </md-dialog-title>
       <div style="padding: 20px;">Add your application here.
         <br>
         <br>
 
-        <md-field id="menutitle">
+        <md-field id="title">
           <label>Title</label>
-          <md-input v-model="menutitle" required></md-input>
-          <span class="md-helper-text">Enter the title of this Menu Entry</span>
-          <span class="md-error">This field cannot be blank</span>
-        </md-field>
-        <md-field id="menuicon">
-          <label>Icon</label>
-          <md-input v-model="menuicon" required></md-input>
-          <span class="md-helper-text">
-            Pick an icon
-            <a
-              href="https://material.io/tools/icons/?style=baseline"
-              target="icons"
-            >from this list</a>
-          </span>
-          <span class="md-error">Please select an icon.</span>
-          <md-icon>{{ menuicon }}</md-icon>
+          <md-input v-model="title" required></md-input>
+          <span class="md-helper-text">Enter the title of this application.</span>
+          <span class="md-error">This field cannot be blank.</span>
         </md-field>
         <md-field id="appLink">
           <label>Application Link</label>
@@ -158,14 +144,14 @@
         </md-field>
 
         <md-dialog-actions>
-          <md-button @click="onDeleteApplication();" style=" margin: 20px 10px -10px 0;">Delete</md-button>
+          <md-button v-if="mode==='update'" @click="onDeleteApplication();" style=" margin: 20px 10px -10px 0;">Delete</md-button>
           <md-button
             class="md-success md-raised"
             @click="onConfirmApplication();"
             style="background: #00B0A0; color: white; margin: 20px -10px -10px 0;"
           >
             <md-icon style="color: white;">exit_to_app</md-icon>
-            {{this.mode.toUpperCase()}}
+            {{ this.mode.toUpperCase() }}
           </md-button>
         </md-dialog-actions>
       </div>
@@ -302,11 +288,7 @@
             >{{ format(person.talk_time) }}</span>
             <md-icon>{{ icon[person.status.substring(2)] }}</md-icon>
             {{ person.name }}
-            <md-icon v-if="person.mood !== 'mood_panic'">
-              {{
-              person.mood
-              }}
-            </md-icon>
+            <md-icon v-if="person.mood !== 'mood_panic'">{{ person.mood }}</md-icon>
             <md-icon v-if="person.mood === 'mood_panic'">healing</md-icon>
             <md-menu
               v-if="person.status.substring(2) !== 'talking' && index !== 0"
@@ -399,42 +381,38 @@
     <div id="theRoom" v-if="!activeApp" :class="[coherence]">
       <p v-if="videoLink">
         Click
-        <a style="color: #e5c62e" v-bind:href="videoLink" target="_target">Join Call</a> to begin the conference.
+        <a style="color: #e5c62e" v-bind:href="videoLink" target="_target">Join Call</a>
+        to begin the conference.
       </p>
       <p v-if="!videoLink">
         Please
-        <a style="color: #e5c62e" href="#" @click.prevent="activeSetting=true">set up</a> the video conference link.
+        <a style="color: #e5c62e" href="#" @click.prevent="activeSetting = true;">set up</a>
+        the video conference link.
       </p>
     </div>
 
-    <div id="actions" v-if="!activeApp">
+    <div id="actions">
       <md-button
         v-for="(link, index) in appLinks"
         :key="index"
-        @click="openApp(link)"
-        @contextmenu.prevent="updateApp(link)"
-        v-bind:title="link.menutitle"
+        @click="openApp(link, index);"
+        @contextmenu.prevent="updateApp(link, index);"
+        v-bind:title="link.title"
+        v-bind:id="index + 1"
         class="md-fab md-mini md-plain"
       >
-        <md-icon>{{link.menuicon}}</md-icon>
+        <strong style="color: #fff; font-size: 1.4em">{{ index + 1 }}</strong>
       </md-button>
       <md-button
-        v-if="!activeApp"
-        title="Add Menu Entry"
-        @click="addApp"
-        class="md-fab md-mini md-plain"
-      >
-        <md-icon>add</md-icon>
-      </md-button>
-    </div>
-    <div id="actions" v-if="activeApp">
-      <md-button
-        v-if="activeApp"
+        id="0"
         title="Close App"
-        @click="activeApp = false;"
+        @click="openApp(null, -1);"
         class="md-fab md-mini md-plain"
       >
-        <md-icon>exit_to_app</md-icon>
+        <strong style="color: #fff; font-size: 1.4em">0</strong>
+      </md-button>
+      <md-button title="Add Menu Entry" @click="addApp" class="md-fab md-mini md-plain">
+        <md-icon>add</md-icon>
       </md-button>
     </div>
 
@@ -469,8 +447,8 @@ export default {
     activeApp: false,
     activeSetting: false,
     activeApplication: false,
-    menutitle: "",
-    menuicon: "",
+    title: "",
+
     power: false,
     snack: "",
     status: "not started",
@@ -573,6 +551,9 @@ export default {
         this.status = data;
       } else if (key === "coherence") {
         this.coherence = data;
+      } else if (key === "selectedApp") {
+        var element = document.getElementById(data);
+        element.style.backgroundColor = "#41b883 !important";
       } else if (key === "appLinks") {
         this.activeApp = true;
         this.appLinks = data;
@@ -611,6 +592,15 @@ export default {
         this.coherence = data;
       } else if (key === "videoLink") {
         this.videoLink = data;
+      } else if (key === "selectedApp") {
+        for (var i = 0; i < this.appLinks.length + 1; i++) {
+          var element = document.getElementById(data);
+          if (i === data) {
+            element.style.backgroundColor = "#41b883 !important";
+          } else {
+            element.style.backgroundColor = "#e5c62e !important";
+          }
+        }
       } else if (key === "appLinks") {
         this.activeApp = true;
         this.appLinks = data;
@@ -1134,34 +1124,29 @@ export default {
       if (!this.appLink) {
         this.activeApplication = true;
         document.getElementById("appLink").classList.add("md-invalid");
-      } else if (!this.menutitle) {
+      } else if (!this.title) {
         this.activeApplication = true;
-        document.getElementById("menutitle").classList.add("md-invalid");
-      } else if (!this.menuicon) {
-        this.activeApplication = true;
-        document.getElementById("menuicon").classList.add("md-invalid");
+        document.getElementById("title").classList.add("md-invalid");
       } else {
         this.activeApplication = false;
         document.getElementById("appLink").classList.remove("md-invalid");
-        document.getElementById("menutitle").classList.remove("md-invalid");
-        document.getElementById("menuicon").classList.remove("md-invalid");
+        document.getElementById("title").classList.remove("md-invalid");
         if (this.mode === "update") {
-          for (var i = 0; i < this.appLinks.length; i++) {
-            if (this.appLinks[i].menutitle === this.menutitle) {
-              this.appLinks[i].appLink = this.appLink;
-              this.appLinks[i].menutitle = this.menutitle;
-              this.appLinks[i].menuicon = this.menuicon;
-            }
-          }
+          // for (var i = 0; i < this.appLinks.length; i++) {
+          //   if (this.appLinks[i].title === this.title) {
+          this.appLinks[this.appID].appLink = this.appLink;
+          this.appLinks[this.appID].title = this.title;
+          //   }
+          // }
         } else {
           this.appLinks.push({
+            appID: this.appLinks.length,
             appLink: this.appLink,
-            menutitle: this.menutitle,
-            menuicon: this.menuicon
+            title: this.title
           });
         }
-this.activeApp = false;
-        this.parametersRef.child("appLinks").update(this.appLinks);
+        this.activeApp = false;
+        this.parametersRef.child("appLinks").set(this.appLinks);
       }
     },
 
@@ -1172,7 +1157,7 @@ this.activeApp = false;
       this.activeApplication = false;
       this.activeApp = false;
       for (var i = 0; i < this.appLinks.length; i++) {
-        if (this.appLinks[i].menutitle === this.menutitle) {
+        if (this.appLinks[i].title === this.title) {
           this.appLinks.splice(i, 1);
           this.parametersRef.child("appLinks").set(this.appLinks);
         }
@@ -1515,15 +1500,19 @@ this.activeApp = false;
     ///////////////////////////////////////////////////////////////////
     // FUNCTION OPEN APP
     ///////////////////////////////////////////////////////////////////
-    openApp: function(app) {
-      this.activeApp = true;
-
-      this.$nextTick(function() {
-        var element = document.getElementById("theApp");
-        element.src = "about:blank";
-        element.style.display = "block";
-        window.open(app.appLink, "theApp");
-      });
+    openApp: function(app, index) {
+      if (index + 1 === 0) {
+        this.activeApp = false;
+      } else {
+        this.activeApp = true;
+        this.$nextTick(function() {
+          var element = document.getElementById("theApp");
+          element.src = "about:blank";
+          element.style.display = "block";
+          window.open(app.appLink, "theApp");
+        });
+      }
+      this.parametersRef.update({ selectedApp: index + 1 });
     },
 
     ///////////////////////////////////////////////////////////////////
@@ -1532,20 +1521,20 @@ this.activeApp = false;
     addApp: function(app) {
       this.activeApplication = true;
       this.mode = "add";
-      this.menutitle = "";
-      this.menuicon = "";
+      this.title = "";
       this.appLink = "";
+      this.appID = "";
     },
 
     ///////////////////////////////////////////////////////////////////
     // FUNCTION update APP
     ///////////////////////////////////////////////////////////////////
-    updateApp: function(app) {
+    updateApp: function(app, index) {
       this.activeApplication = true;
       this.mode = "update";
-      this.menutitle = app.menutitle;
-      this.menuicon = app.menuicon;
+      this.title = app.title;
       this.appLink = app.appLink;
+      this.appID = index;
     },
 
     ///////////////////////////////////////////////////////////////////
@@ -1722,6 +1711,11 @@ this.activeApp = false;
   right: 20px;
   z-index: 299;
 }
+
+.md-dialog {
+  max-height: 100% !important;
+}
+
 .md-toolbar {
   background-color: #404040 !important;
 }
