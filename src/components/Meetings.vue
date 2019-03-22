@@ -125,9 +125,9 @@
       :md-active.sync="activeApplication"
     >
       <md-dialog-title>
-        <md-icon>settings_power</md-icon>Meeting Settings
+        <md-icon>settings_power</md-icon>Add Application
       </md-dialog-title>
-      <div style="padding: 20px;">You can customize your Talk Time here.
+      <div style="padding: 20px;">Add your application here.
         <br>
         <br>
 
@@ -137,8 +137,7 @@
           <span class="md-helper-text">Enter the title of this Menu Entry</span>
           <span class="md-error">This field cannot be blank</span>
         </md-field>
-
-        <md-field>
+        <md-field id="menuicon">
           <label>Icon</label>
           <md-input v-model="menuicon" required></md-input>
           <span class="md-helper-text">
@@ -148,14 +147,8 @@
               target="icons"
             >from this list</a>
           </span>
-          <span class="md-error"></span>
+          <span class="md-error">Please select an icon.</span>
           <md-icon>{{ menuicon }}</md-icon>
-        </md-field>
-        <md-field id="videoLink">
-          <label>Video Conference Link</label>
-          <md-input v-model="videoLink" required></md-input>
-          <span class="md-helper-text"></span>
-          <span class="md-error">Please enter a link.</span>
         </md-field>
         <md-field id="appLink">
           <label>Application Link</label>
@@ -165,12 +158,14 @@
         </md-field>
 
         <md-dialog-actions>
+          <md-button @click="onDeleteApplication();" style=" margin: 20px 10px -10px 0;">Delete</md-button>
           <md-button
             class="md-success md-raised"
             @click="onConfirmApplication();"
             style="background: #00B0A0; color: white; margin: 20px -10px -10px 0;"
           >
-            <md-icon style="color: white;">exit_to_app</md-icon>Save
+            <md-icon style="color: white;">exit_to_app</md-icon>
+            {{this.mode.toUpperCase()}}
           </md-button>
         </md-dialog-actions>
       </div>
@@ -404,11 +399,11 @@
     <div id="theRoom" v-if="!activeApp" :class="[coherence]">
       <p v-if="videoLink">
         Click
-        <a v-bind:href="videoLink" target="_target">Join Call</a> to begin the conference.
+        <a style="color: #e5c62e" v-bind:href="videoLink" target="_target">Join Call</a> to begin the conference.
       </p>
       <p v-if="!videoLink">
         Please
-        <a href="#" @click.prevent="activeSetting=true">set up</a> the video conference link.
+        <a style="color: #e5c62e" href="#" @click.prevent="activeSetting=true">set up</a> the video conference link.
       </p>
     </div>
 
@@ -417,6 +412,7 @@
         v-for="(link, index) in appLinks"
         :key="index"
         @click="openApp(link)"
+        @contextmenu.prevent="updateApp(link)"
         v-bind:title="link.menutitle"
         class="md-fab md-mini md-plain"
       >
@@ -425,7 +421,7 @@
       <md-button
         v-if="!activeApp"
         title="Add Menu Entry"
-        @click="activeSetting = true;"
+        @click="addApp"
         class="md-fab md-mini md-plain"
       >
         <md-icon>add</md-icon>
@@ -493,6 +489,7 @@ export default {
     moodDuration: 3,
     attendeesRef: "",
     parametersRef: "",
+    mode: "add",
     appLink: "",
     appLinks: [],
     videoLink: "",
@@ -1102,7 +1099,7 @@ export default {
     },
 
     ///////////////////////////////////////////////////////////////////
-    // FUNCTION SETTINGS
+    // FUNCTION CHANGE SETTINGS
     ///////////////////////////////////////////////////////////////////
     onConfirmSettings: function() {
       if (!this.videoLink) {
@@ -1122,12 +1119,63 @@ export default {
           .classList.remove("md-invalid");
         document.getElementById("moodDuration").classList.remove("md-invalid");
 
-        console.log(this.meetingDuration);
         this.parametersRef.update({
           meetingDuration: this.meetingDuration,
           moodDuration: this.moodDuration,
           videoLink: this.videoLink
         });
+      }
+    },
+
+    ///////////////////////////////////////////////////////////////////
+    // FUNCTION ADD APPLICATION
+    ///////////////////////////////////////////////////////////////////
+    onConfirmApplication: function() {
+      if (!this.appLink) {
+        this.activeApplication = true;
+        document.getElementById("appLink").classList.add("md-invalid");
+      } else if (!this.menutitle) {
+        this.activeApplication = true;
+        document.getElementById("menutitle").classList.add("md-invalid");
+      } else if (!this.menuicon) {
+        this.activeApplication = true;
+        document.getElementById("menuicon").classList.add("md-invalid");
+      } else {
+        this.activeApplication = false;
+        document.getElementById("appLink").classList.remove("md-invalid");
+        document.getElementById("menutitle").classList.remove("md-invalid");
+        document.getElementById("menuicon").classList.remove("md-invalid");
+        if (this.mode === "update") {
+          for (var i = 0; i < this.appLinks.length; i++) {
+            if (this.appLinks[i].menutitle === this.menutitle) {
+              this.appLinks[i].appLink = this.appLink;
+              this.appLinks[i].menutitle = this.menutitle;
+              this.appLinks[i].menuicon = this.menuicon;
+            }
+          }
+        } else {
+          this.appLinks.push({
+            appLink: this.appLink,
+            menutitle: this.menutitle,
+            menuicon: this.menuicon
+          });
+        }
+this.activeApp = false;
+        this.parametersRef.child("appLinks").update(this.appLinks);
+      }
+    },
+
+    ///////////////////////////////////////////////////////////////////
+    // FUNCTION REMOVE APPLICATION
+    ///////////////////////////////////////////////////////////////////
+    onDeleteApplication: function() {
+      this.activeApplication = false;
+      this.activeApp = false;
+      for (var i = 0; i < this.appLinks.length; i++) {
+        if (this.appLinks[i].menutitle === this.menutitle) {
+          this.appLinks.splice(i, 1);
+          this.parametersRef.child("appLinks").set(this.appLinks);
+        }
       }
     },
 
@@ -1479,6 +1527,28 @@ export default {
     },
 
     ///////////////////////////////////////////////////////////////////
+    // FUNCTION ADD APP
+    ///////////////////////////////////////////////////////////////////
+    addApp: function(app) {
+      this.activeApplication = true;
+      this.mode = "add";
+      this.menutitle = "";
+      this.menuicon = "";
+      this.appLink = "";
+    },
+
+    ///////////////////////////////////////////////////////////////////
+    // FUNCTION update APP
+    ///////////////////////////////////////////////////////////////////
+    updateApp: function(app) {
+      this.activeApplication = true;
+      this.mode = "update";
+      this.menutitle = app.menutitle;
+      this.menuicon = app.menuicon;
+      this.appLink = app.appLink;
+    },
+
+    ///////////////////////////////////////////////////////////////////
     // FUNCTION CREATE NOTE
     ///////////////////////////////////////////////////////////////////
     createNote: function(type) {
@@ -1624,7 +1694,6 @@ export default {
   width: 80%;
   min-height: 100vh;
   max-height: 100vh;
-  overflow: auto;
   text-align: center;
   font-size: 5em;
   line-height: 1.2em;
