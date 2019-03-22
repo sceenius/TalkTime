@@ -69,13 +69,60 @@
 
     <!--
       ----------------------------------------------------------------------
-        DIALOG BOXES - SETTINGS DIALOG
+        DIALOG BOXES - MEETING SETTINGS
       ----------------------------------------------------------------------
     -->
     <md-dialog
       :md-close-on-esc="true"
       :md-click-outside-to-close="true"
       :md-active.sync="activeSetting"
+    >
+      <md-dialog-title>
+        <md-icon>settings_power</md-icon>Meeting Settings
+      </md-dialog-title>
+      <div style="padding: 30px;">Set your meeting parameters here.
+        <md-field id="videoLink">
+          <label>Video Conference Link</label>
+          <md-input v-model="videoLink" required></md-input>
+          <span class="md-helper-text">Enter video conference URL</span>
+          <span class="md-error">Please enter a link.</span>
+        </md-field>
+
+        <md-field id="meetingDuration">
+          <label>Meeting Duration</label>
+          <md-input v-model="meetingDuration" required></md-input>
+          <span class="md-helper-text">Enter duration in mins</span>
+          <span class="md-error">Please enter a duration.</span>
+        </md-field>
+
+        <md-field id="moodDuration">
+          <label>Mood Duration</label>
+          <md-input v-model="moodDuration" required></md-input>
+          <span class="md-helper-text">Enter duration in mins</span>
+          <span class="md-error">Please enter a duration.</span>
+        </md-field>
+
+        <md-dialog-actions>
+          <md-button
+            class="md-success md-raised"
+            @click="onConfirmSettings();"
+            style="background: #00B0A0; color: white; margin: 20px -10px -10px 0;"
+          >
+            <md-icon style="color: white;">exit_to_app</md-icon>Save
+          </md-button>
+        </md-dialog-actions>
+      </div>
+    </md-dialog>
+
+    <!--
+      ----------------------------------------------------------------------
+        DIALOG BOXES - APPLICATON SETTINGS
+      ----------------------------------------------------------------------
+    -->
+    <md-dialog
+      :md-close-on-esc="true"
+      :md-click-outside-to-close="true"
+      :md-active.sync="activeApplication"
     >
       <md-dialog-title>
         <md-icon>settings_power</md-icon>Meeting Settings
@@ -120,8 +167,8 @@
         <md-dialog-actions>
           <md-button
             class="md-success md-raised"
-            @click="onConfirmSettings();"
-            style="background: #00B0A0; color: white;"
+            @click="onConfirmApplication();"
+            style="background: #00B0A0; color: white; margin: 20px -10px -10px 0;"
           >
             <md-icon style="color: white;">exit_to_app</md-icon>Save
           </md-button>
@@ -355,8 +402,14 @@
       </div>
     </div>
     <div id="theRoom" v-if="!activeApp" :class="[coherence]">
-      <p v-if="videoLink">Click Join Call to begin the conference.</p>
-      <p v-if="!videoLink">Please set up the video conference link.</p>
+      <p v-if="videoLink">
+        Click
+        <a v-bind:href="videoLink" target="_target">Join Call</a> to begin the conference.
+      </p>
+      <p v-if="!videoLink">
+        Please
+        <a href="#" @click.prevent="activeSetting=true">set up</a> the video conference link.
+      </p>
     </div>
 
     <div id="actions" v-if="!activeApp">
@@ -419,6 +472,7 @@ export default {
     activeUser: false,
     activeApp: false,
     activeSetting: false,
+    activeApplication: false,
     menutitle: "",
     menuicon: "",
     power: false,
@@ -434,7 +488,9 @@ export default {
     domain: "diglife",
     mood: 0,
     battery: 1,
-    duration: 60 * 60 * 2, //in seconds, default is 2 hrs
+    //duration: 60 * 60 * 2, //in seconds, default is 2 hrs
+    meetingDuration: 120,
+    moodDuration: 3,
     attendeesRef: "",
     parametersRef: "",
     appLink: "",
@@ -721,7 +777,7 @@ export default {
               this.battery =
                 1 -
                 (this.time + attendee.talk_time) /
-                  ((this.duration / this.attendees.length) * 2);
+                  (((this.meetingDuration * 60) / this.attendees.length) * 2);
             }
           }, 1000);
           break;
@@ -783,7 +839,7 @@ export default {
           attendee.mood = "";
           this.mood--;
           clearInterval(attendee.mood_timer);
-        }, 60 * 2 * 1000);
+        }, this.moodDuration * 60 * 1000);
       }
       ///////////////////////////////////////////////////////////////////
       // PERSON IS OFF TOPIC
@@ -796,7 +852,7 @@ export default {
           attendee.mood = "";
           this.mood++;
           clearInterval(attendee.mood_timer);
-        }, 60 * 2 * 1000);
+        }, this.moodDuration * 60 * 1000);
       }
       ///////////////////////////////////////////////////////////////////
       // PERSON IS IN PANIC
@@ -1052,19 +1108,25 @@ export default {
       if (!this.videoLink) {
         this.activeSetting = true;
         document.getElementById("videoLink").classList.add("md-invalid");
-      } else if (!this.appLink) {
+      } else if (!this.meetingDuration) {
         this.activeSetting = true;
-        document.getElementById("appLink").classList.add("md-invalid");
+        document.getElementById("meetingDuration").classList.add("md-invalid");
+      } else if (!this.moodDuration) {
+        this.activeSetting = true;
+        document.getElementById("moodDuration").classList.add("md-invalid");
       } else {
         this.activeSetting = false;
         document.getElementById("videoLink").classList.remove("md-invalid");
-        document.getElementById("appLink").classList.remove("md-invalid");
+        document
+          .getElementById("meetingDuration")
+          .classList.remove("md-invalid");
+        document.getElementById("moodDuration").classList.remove("md-invalid");
 
+        console.log(this.meetingDuration);
         this.parametersRef.update({
-          menutitle: this.menutitle,
-          menuicon: this.menuicon,
-          videoLink: this.videoLink,
-          appLink: this.appLink
+          meetingDuration: this.meetingDuration,
+          moodDuration: this.moodDuration,
+          videoLink: this.videoLink
         });
       }
     },
@@ -1657,7 +1719,7 @@ span.md-title {
 }
 
 .md-field {
-  margin: 10px;
+  margin: 30px -30px 0 0 !important;
 }
 
 .md-card-menu .md-list-item-content {
