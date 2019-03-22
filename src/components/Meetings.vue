@@ -12,9 +12,7 @@
       md-position="left"
     >
       <span>{{ snack }}</span>
-      <md-button class="md-primary" @click="showSnackBar = false;"
-        >Dismiss
-      </md-button>
+      <md-button class="md-primary" @click="showSnackBar = false;">Dismiss</md-button>
     </md-snackbar>
 
     <!--
@@ -33,13 +31,16 @@
       :md-active.sync="activeUser"
       id="login-dialog"
     >
-      <md-dialog-title
-        ><md-icon>timelapse</md-icon> Welcome to<br />&nbsp;&nbsp; &nbsp; &nbsp;
-        Ta<span style="position: relative; top: -5px">l</span>k
-        Time!</md-dialog-title
-      >
-      <div>
-        To get started, please enter your username.<br /><br />
+      <md-dialog-title>
+        <md-icon>timelapse</md-icon>Welcome to
+        <br>&nbsp;&nbsp; &nbsp; &nbsp;
+        Ta
+        <span style="position: relative; top: -5px">l</span>k
+        Time!
+      </md-dialog-title>
+      <div>To get started, please enter your username.
+        <br>
+        <br>
         <md-field id="username">
           <label style=" color: white;">Name</label>
           <md-input
@@ -58,9 +59,9 @@
               class="md-success md-raised"
               @click="onConfirm();"
               style="background: #00B0A0; color: white;"
-              ><md-icon style="color: white;">exit_to_app</md-icon>
-              Enter</md-button
             >
+              <md-icon style="color: white;">exit_to_app</md-icon>Enter
+            </md-button>
           </md-dialog-actions>
         </center>
       </div>
@@ -76,11 +77,12 @@
       :md-click-outside-to-close="true"
       :md-active.sync="activeSetting"
     >
-      <md-dialog-title
-        ><md-icon>settings_power</md-icon> Meeting Settings</md-dialog-title
-      >
-      <div style="padding: 20px;">
-        You can customize your Talk Time here.<br /><br />
+      <md-dialog-title>
+        <md-icon>settings_power</md-icon>Meeting Settings
+      </md-dialog-title>
+      <div style="padding: 20px;">You can customize your Talk Time here.
+        <br>
+        <br>
 
         <md-field id="menutitle">
           <label>Title</label>
@@ -92,14 +94,13 @@
         <md-field>
           <label>Icon</label>
           <md-input v-model="menuicon" required></md-input>
-          <span class="md-helper-text"
-            >Pick an icon
+          <span class="md-helper-text">
+            Pick an icon
             <a
               href="https://material.io/tools/icons/?style=baseline"
               target="icons"
-              >from this list</a
-            ></span
-          >
+            >from this list</a>
+          </span>
           <span class="md-error"></span>
           <md-icon>{{ menuicon }}</md-icon>
         </md-field>
@@ -121,9 +122,9 @@
             class="md-success md-raised"
             @click="onConfirmSettings();"
             style="background: #00B0A0; color: white;"
-            ><md-icon style="color: white;">exit_to_app</md-icon>
-            Save</md-button
           >
+            <md-icon style="color: white;">exit_to_app</md-icon>Save
+          </md-button>
         </md-dialog-actions>
       </div>
     </md-dialog>
@@ -145,7 +146,9 @@
         -->
         <!-- Show the title and navigation path here -->
         <!-- img src="https://diglife.com/brand/logo_primary.svg" / -->
-        <span class="md-title"> <md-icon>timelapse</md-icon> TALKTIME</span>
+        <span class="md-title">
+          <md-icon>timelapse</md-icon>TALKTIME
+        </span>
         <md-chip
           v-if="
             status === 'on air' ||
@@ -155,31 +158,22 @@
               status === 'ping pong'
           "
           style="background-color: #e64d3d !important;"
-          >{{ status }}</md-chip
-        >
-        <md-chip
-          v-else
-          style="background-color: rgba(255, 255, 255, 0.5) !important;"
-          >{{ status }}</md-chip
-        >
+        >{{ status }}</md-chip>
+        <md-chip v-else style="background-color: rgba(255, 255, 255, 0.5) !important;">{{ status }}</md-chip>
         <div style="position: absolute; right: 0px">
-          <img
-            title="Remaining talk time"
-            width="30"
-            v-bind:src="battery_bar"
-          />
+          <img title="Remaining talk time" width="30" v-bind:src="battery_bar">
           <img
             title="Topic signal strength"
             style="margin-left: -5px;"
             width="30"
             v-bind:src="signal_bar"
-          />
+          >
           <img
             title="Balanced talk time"
             style="margin-left: 3px;"
             width="30"
             v-bind:src="wifi_bar"
-          />
+          >
 
           <md-menu style="padding: 10px; cursor: pointer;">
             <md-icon md-menu-trigger>more_vert</md-icon>
@@ -259,18 +253,18 @@
             <span
               style="position: absolute; right: 10px; margin-top: 2px;"
               v-if="index === 0"
-              >{{ format(time) }}</span
-            >
+            >{{ format(time) }}</span>
             <span
               style="position: absolute; right: 40px; margin-top: 3px; font-size: 0.8em"
               v-else
-              >{{ format(person.talk_time) }}</span
-            >
+            >{{ format(person.talk_time) }}</span>
             <md-icon>{{ icon[person.status.substring(2)] }}</md-icon>
             {{ person.name }}
-            <md-icon v-if="person.mood !== 'mood_panic'">{{
+            <md-icon v-if="person.mood !== 'mood_panic'">
+              {{
               person.mood
-            }}</md-icon>
+              }}
+            </md-icon>
             <md-icon v-if="person.mood === 'mood_panic'">healing</md-icon>
             <md-menu
               v-if="person.status.substring(2) !== 'talking' && index !== 0"
@@ -313,10 +307,11 @@
               status === 'ping pong' ||
               status === 'random'
           "
-          ><md-icon>pan_tool</md-icon>
-          <md-icon class="longpress">warning</md-icon>
-          <div>RAISE HAND</div></md-button
         >
+          <md-icon>pan_tool</md-icon>
+          <md-icon class="longpress">warning</md-icon>
+          <div>RAISE HAND</div>
+        </md-button>
         <md-button
           @click="join_call"
           :disabled="
@@ -326,9 +321,10 @@
               videoLink === ''
           "
           v-bind:class="['bar-button', coherence]"
-          ><md-icon>videocam</md-icon>
-          <div>JOIN CALL</div></md-button
         >
+          <md-icon>videocam</md-icon>
+          <div>JOIN CALL</div>
+        </md-button>
         <md-button
           @click="on_topic"
           :disabled="
@@ -337,9 +333,10 @@
               status === 'ping pong'
           "
           v-bind:class="['bar-button', coherence]"
-          ><md-icon>mood</md-icon>
-          <div>ON TOPIC</div></md-button
         >
+          <md-icon>mood</md-icon>
+          <div>ON TOPIC</div>
+        </md-button>
         <md-button
           v-long-press="onLongPress"
           v-touch:longtap="onLongPress"
@@ -353,29 +350,50 @@
         >
           <md-icon>mood_bad</md-icon>
           <md-icon class="longpress">warning</md-icon>
-          <div>OFF TOPIC</div></md-button
-        >
+          <div>OFF TOPIC</div>
+        </md-button>
       </div>
     </div>
     <div id="theRoom" v-if="!activeApp" :class="[coherence]">
-      <div id="actions">
-        <md-button
-          title="Add Menu Entry"
-          @click="activeSetting = true;"
-          class="md-fab md-mini md-plain"
-        >
-          <md-icon>add</md-icon>
-        </md-button>
-      </div>
       <p v-if="videoLink">Click Join Call to begin the conference.</p>
       <p v-if="!videoLink">Please set up the video conference link.</p>
+    </div>
+
+    <div id="actions" v-if="!activeApp">
+      <md-button
+        v-for="(link, index) in appLinks"
+        :key="index"
+        @click="openApp(link)"
+        v-bind:title="link.menutitle"
+        class="md-fab md-mini md-plain"
+      >
+        <md-icon>{{link.menuicon}}</md-icon>
+      </md-button>
+      <md-button
+        v-if="!activeApp"
+        title="Add Menu Entry"
+        @click="activeSetting = true;"
+        class="md-fab md-mini md-plain"
+      >
+        <md-icon>add</md-icon>
+      </md-button>
+    </div>
+    <div id="actions" v-if="activeApp">
+      <md-button
+        v-if="activeApp"
+        title="Close App"
+        @click="activeApp = false;"
+        class="md-fab md-mini md-plain"
+      >
+        <md-icon>exit_to_app</md-icon>
+      </md-button>
     </div>
 
     <iframe
       :class="[coherence]"
       name="theApp"
       v-if="activeApp"
-      src=""
+      src
       id="theApp"
       frameborder="0"
       scrolling="yes"
@@ -420,6 +438,7 @@ export default {
     attendeesRef: "",
     parametersRef: "",
     appLink: "",
+    appLinks: [],
     videoLink: "",
     users: [],
     attendees: [{ name: "waiting..", status: "0 standing_by", talk_time: 0 }],
@@ -476,7 +495,7 @@ export default {
     ///////////////////////////////////////////////////////////////////
     // GET PARAM FROM ROUTER
     ///////////////////////////////////////////////////////////////////
-    this.domain = this.$route.params.domain || "diglife";
+    this.domain = this.$route.params.domain;
     if (this.domain === "") {
       alert("You must provide a meeting ID in the URL.");
     }
@@ -501,14 +520,22 @@ export default {
         this.status = data;
       } else if (key === "coherence") {
         this.coherence = data;
-      } else if (key === "videoLink") {
-        this.videoLink = data;
-        this.snack = "Video link connected.";
+      } else if (key === "appLinks") {
+        this.activeApp = true;
+        this.appLinks = data;
+
+        this.$nextTick(function() {
+          var element = document.getElementById("theApp");
+          element.src = "about:blank";
+          element.style.display = "block";
+          window.open(this.appLinks[0].appLink, "theApp");
+        });
+        this.snack = "Application links loaded.";
         this.showSnackBar = true;
       } else if (key === "appLink") {
         this.activeApp = true;
         this.appLink = data;
-        this.snack = "Meeting app connected.";
+        this.snack = "Video link connected.";
         this.showSnackBar = true;
 
         this.$nextTick(function() {
@@ -517,6 +544,8 @@ export default {
           element.style.display = "block";
           window.open(data, "theApp");
         });
+      } else if (key === "videoLink") {
+        this.videoLink = data;
       }
     });
 
@@ -529,13 +558,20 @@ export default {
         this.coherence = data;
       } else if (key === "videoLink") {
         this.videoLink = data;
-        this.snack = "Meeting app loaded.";
+      } else if (key === "appLinks") {
+        this.activeApp = true;
+        this.appLinks = data;
+        this.$nextTick(function() {
+          var element = document.getElementById("theApp");
+          element.src = "about:blank";
+          element.style.display = "block";
+          window.open(this.appLinks[0].appLink, "theApp");
+        });
+        this.snack = "Application links loaded.";
         this.showSnackBar = true;
       } else if (key === "appLink") {
         this.activeApp = true;
         this.appLink = data;
-        this.snack = "Video link connected.";
-        this.showSnackBar = true;
 
         this.$nextTick(function() {
           var element = document.getElementById("theApp");
@@ -563,21 +599,6 @@ export default {
           this.attendees[0].status = "6 invisible";
         }
       }
-
-      // if (
-      //   this.attendees[1] &&
-      //   this.attendees[0].status.substring(2) === "standing_by"
-      // ) {
-      //   if (
-      //     this.attendees[1].status.substring(2) === "waiting" ||
-      //     this.attendees[1].status.substring(2) === "interjecting"
-      //   ) {
-      //     this.attendees[0].name = "continue..";
-      //     this.icon["standing_by"] = "touch_app";
-      //   } else {
-      //     this.attendees[0].name = "waiting..";
-      //   }
-      // }
 
       // compute mood
       if (data.mood === "mood_bad") {
@@ -651,7 +672,7 @@ export default {
     ///////////////////////////////////////////////////////////////////
     this.attendeesRef.on("child_changed", user => {
       let data = user.val();
-
+      console.log(data);
       // retrieve attendee record
       var attendee = {};
       var invisible = {};
@@ -1382,6 +1403,20 @@ export default {
     },
 
     ///////////////////////////////////////////////////////////////////
+    // FUNCTION OPEN APP
+    ///////////////////////////////////////////////////////////////////
+    openApp: function(app) {
+      this.activeApp = true;
+
+      this.$nextTick(function() {
+        var element = document.getElementById("theApp");
+        element.src = "about:blank";
+        element.style.display = "block";
+        window.open(app.appLink, "theApp");
+      });
+    },
+
+    ///////////////////////////////////////////////////////////////////
     // FUNCTION CREATE NOTE
     ///////////////////////////////////////////////////////////////////
     createNote: function(type) {
@@ -1492,6 +1527,9 @@ export default {
 @media only screen and (max-width: 1080px) {
   #theApp,
   #theRoom {
+    display: none !important;
+  }
+  #actions {
     display: none !important;
   }
   #app {
@@ -1742,9 +1780,15 @@ span.md-title {
 
 #actions {
   position: absolute;
-  width: 40px;
-  bottom: 25%;
-  right: 15px;
+  margin: auto;
+  bottom: 40%;
+  z-index: 99;
+  width: 45px;
+  right: 20px;
+}
+#actions .md-button {
+  margin-left: 0;
+  background-color: #e5c62e !important;
 }
 
 .red,
