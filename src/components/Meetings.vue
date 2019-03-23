@@ -1165,7 +1165,7 @@ export default {
           });
         }
         this.activeApp = false;
-        this.parametersRef.child("appLinks").set(this.appLinks);
+        this.parametersRef.child("appLinks").update(this.appLinks);
       }
     },
 
