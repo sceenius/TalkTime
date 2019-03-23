@@ -402,6 +402,14 @@
 
     <div id="actions">
       <md-button
+        id="0"
+        title="Close App"
+        @click="openApp(null, -1);"
+        class="md-fab md-mini md-plain"
+      >
+        <strong style="color: #fff; font-size: 1.4em">0</strong>
+      </md-button>
+      <md-button
         v-for="(link, index) in appLinks"
         :key="index"
         @click="openApp(link, index);"
@@ -412,14 +420,7 @@
       >
         <strong style="color: #fff; font-size: 1.4em">{{ index + 1 }}</strong>
       </md-button>
-      <md-button
-        id="0"
-        title="Close App"
-        @click="openApp(null, -1);"
-        class="md-fab md-mini md-plain"
-      >
-        <strong style="color: #fff; font-size: 1.4em">0</strong>
-      </md-button>
+
       <md-button title="Add Menu Entry" @click="addApp" class="md-fab md-mini md-plain">
         <md-icon>add</md-icon>
       </md-button>
@@ -1159,7 +1160,7 @@ export default {
           // }
         } else {
           this.appLinks.push({
-            appID: this.appLinks.length,
+            appID: this.appLinks.length + 1,
             appLink: this.appLink,
             title: this.title
           });
