@@ -124,7 +124,8 @@
       :md-active.sync="activeApplication"
     >
       <md-dialog-title>
-        <md-icon>settings_power</md-icon>{{mode}} Application
+        <md-icon>settings_power</md-icon>
+        {{ mode }} Application
       </md-dialog-title>
       <div style="padding: 20px;">Add your application here.
         <br>
@@ -144,7 +145,11 @@
         </md-field>
 
         <md-dialog-actions>
-          <md-button v-if="mode==='update'" @click="onDeleteApplication();" style=" margin: 20px 10px -10px 0;">Delete</md-button>
+          <md-button
+            v-if="mode === 'update'"
+            @click="onDeleteApplication();"
+            style=" margin: 20px 10px -10px 0;"
+          >Delete</md-button>
           <md-button
             class="md-success md-raised"
             @click="onConfirmApplication();"
@@ -288,7 +293,11 @@
             >{{ format(person.talk_time) }}</span>
             <md-icon>{{ icon[person.status.substring(2)] }}</md-icon>
             {{ person.name }}
-            <md-icon v-if="person.mood !== 'mood_panic'">{{ person.mood }}</md-icon>
+            <md-icon v-if="person.mood !== 'mood_panic'">
+              {{
+              person.mood
+              }}
+            </md-icon>
             <md-icon v-if="person.mood === 'mood_panic'">healing</md-icon>
             <md-menu
               v-if="person.status.substring(2) !== 'talking' && index !== 0"
@@ -461,6 +470,7 @@ export default {
     username: "",
     domain: "diglife",
     mood: 0,
+    moodChange: false,
     battery: 1,
     //duration: 60 * 60 * 2, //in seconds, default is 2 hrs
     meetingDuration: 120,
@@ -552,8 +562,10 @@ export default {
       } else if (key === "coherence") {
         this.coherence = data;
       } else if (key === "selectedApp") {
-        var element = document.getElementById(data);
-        element.style.backgroundColor = "#41b883 !important";
+        this.$nextTick(function() {
+          var element = document.getElementById(data);
+          element.style.backgroundColor = "#41b883 !important";
+        });
       } else if (key === "appLinks") {
         this.activeApp = true;
         this.appLinks = data;
@@ -700,7 +712,7 @@ export default {
     ///////////////////////////////////////////////////////////////////
     this.attendeesRef.on("child_removed", user => {
       let data = user.val();
-      console.log(">>>>>>>>>>>>>>>", data);
+      //console.log(">>>>>>>>>>>>>>>", data);
       // find person and change status
       this.attendees.forEach((person, index, arr) => {
         //console.log(person);
@@ -715,7 +727,8 @@ export default {
     ///////////////////////////////////////////////////////////////////
     this.attendeesRef.on("child_changed", user => {
       let data = user.val();
-      console.log(data);
+
+      //console.log(data);
       // retrieve attendee record
       var attendee = {};
       var invisible = {};
@@ -749,6 +762,8 @@ export default {
         this.icon["standing_by"] = "access_time";
         this.cursor["standing_by"] = "default";
       }
+
+      //if (!this.moodChange) {
       ///////////////////////////////////////////////////////////////////
       // SWITCH STATUS
       ///////////////////////////////////////////////////////////////////
@@ -812,12 +827,15 @@ export default {
         default:
           break;
       }
+      //}
 
       ///////////////////////////////////////////////////////////////////
       // PERSON IS ON TOPIC
       // THIS HAS A SIDE EFFECT.... don't change other states
       ///////////////////////////////////////////////////////////////////
       this.mood = 0;
+      this.moodChange = false;
+
       if (data.mood === "mood") {
         attendee.mood = "mood";
         clearInterval(attendee.mood_timer);
@@ -869,7 +887,7 @@ export default {
         }
       }); // mood
 
-      //sort
+      // //sort
       if (this.status === "random") {
         this.attendees.sort(function(a, b) {
           return (
@@ -1036,6 +1054,7 @@ export default {
           this.parametersRef.update({ coherence: "red" });
           this.snack = "Emergency protocol enabled.";
           this.showSnackBar = true;
+          this.moodChange = true;
         }
       });
     },
@@ -1481,6 +1500,7 @@ export default {
       });
       this.snack = "Your mood has been registered.";
       this.showSnackBar = true;
+      this.moodChange = true;
     },
 
     ///////////////////////////////////////////////////////////////////
@@ -1495,6 +1515,7 @@ export default {
       });
       this.snack = "Your mood has been registered.";
       this.showSnackBar = true;
+      this.moodChange = true;
     },
 
     ///////////////////////////////////////////////////////////////////
