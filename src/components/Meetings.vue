@@ -402,7 +402,7 @@
       </p>
     </div>
 
-    <div id="actions">
+    <div id="actions" v-if="!activeUser">
       <md-button
         id="0"
         title="Close App"
@@ -1529,12 +1529,16 @@ export default {
         this.activeApp = false;
       } else {
         this.activeApp = true;
-        this.$nextTick(function() {
-          var element = document.getElementById("theApp");
-          element.src = "about:blank";
-          element.style.display = "block";
-          window.open(app.appLink, "theApp");
-        });
+        if (window.screen.width < 1080) {
+          window.open(app.appLink, "_none");
+        } else {
+          this.$nextTick(function() {
+            var element = document.getElementById("theApp");
+            element.src = "about:blank";
+            element.style.display = "block";
+            window.open(app.appLink, "theApp");
+          });
+        }
       }
       this.parametersRef.update({ selectedApp: index + 1 });
     },
@@ -1674,9 +1678,7 @@ export default {
   #theRoom {
     display: none !important;
   }
-  #actions {
-    display: none !important;
-  }
+
   #app {
     width: 100% !important;
   }
@@ -1866,7 +1868,6 @@ span.md-title {
 }
 
 .bar-button:disabled {
-  back ground-color: #eee !important;
   color: #888 !important;
   border: 1px solid white;
   cursor: not-allowed;
@@ -1935,7 +1936,7 @@ span.md-title {
 #actions {
   position: absolute;
   margin: auto;
-  bottom: 40%;
+  bottom: 80px;
   z-index: 99;
   width: 45px;
   right: 20px;
