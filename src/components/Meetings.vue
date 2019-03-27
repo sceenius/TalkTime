@@ -361,6 +361,7 @@
         <md-button
           @click="on_topic"
           :disabled="
+          this.attendees[0].name === username ||
             status === 'not started' ||
               status === 'ended' ||
               status === 'ping pong'
@@ -375,6 +376,7 @@
           v-touch:longtap="onLongPress"
           @mousedown="off_topic"
           :disabled="
+          this.attendees[0].name === username ||
             status === 'not started' ||
               status === 'ended' ||
               status === 'ping pong'
@@ -1864,9 +1866,14 @@ span.md-title {
 }
 
 .bar-button:disabled {
-  background-color: #eee !important;
+  back ground-color: #eee !important;
+  color: #888 !important;
   border: 1px solid white;
   cursor: not-allowed;
+}
+
+.bar-button:disabled .md-icon {
+  color: #888 !important;
 }
 
 #login-dialog {
