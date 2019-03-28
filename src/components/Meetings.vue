@@ -187,6 +187,7 @@
           <md-icon>timelapse</md-icon>TALKTIME
         </span>
         <md-chip
+          class="animated rubberBand delay-2s"
           v-if="
             status === 'on air' ||
               status === 'check in' ||
@@ -280,6 +281,7 @@
             v-for="(person, index) in attendees"
             :key="index"
             @click="index === 0 ? complete(person) : null;"
+            v-bind:class="{'animated':(person.status === '3 waiting'),'rubberBand':(person.status === '3 waiting')}"
             v-bind:style="[
               {
                 backgroundColor: color[person.status.substring(2)],
@@ -1538,6 +1540,7 @@ export default {
     openApp: function(app, index) {
       if (index + 1 === 0) {
         this.activeApp = false;
+      } else {
         if (window.screen.width < 1080) {
           window.open(app.appLink, "_none");
         } else {

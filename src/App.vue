@@ -1,5 +1,5 @@
 <template>
-  <router-view />
+  <router-view/>
 </template>
 
 <script>
@@ -15,6 +15,7 @@ export default {
 
 <style>
 @import "https://fonts.googleapis.com/css?family=Roboto:400,500,700,400italic|Material+Icons";
+@import "https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.7.0/animate.min.css";
 
 #app {
   font-family: "Roboto", Helvetica, Arial, sans-serif;
