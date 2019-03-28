@@ -12,7 +12,9 @@
       md-position="left"
     >
       <span>{{ snack }}</span>
-      <md-button class="md-primary" @click="showSnackBar = false;">Dismiss</md-button>
+      <md-button class="md-primary" @click="showSnackBar = false;"
+        >Dismiss</md-button
+      >
     </md-snackbar>
 
     <!--
@@ -32,14 +34,12 @@
       id="login-dialog"
     >
       <md-dialog-title>
-        <md-icon>timelapse</md-icon>Welcome to
-        <br>&nbsp;&nbsp; &nbsp; &nbsp;
-        Ta
-        <span style="position: relative; top: -5px">l</span>k Time!
+        <md-icon>timelapse</md-icon>Welcome to <br />&nbsp;&nbsp; &nbsp; &nbsp;
+        Ta <span style="position: relative; top: -5px">l</span>k Time!
       </md-dialog-title>
-      <div>To get started, please enter your username.
-        <br>
-        <br>
+      <div>
+        To get started, please enter your username. <br />
+        <br />
         <md-field id="username">
           <label style=" color: white;">Name</label>
           <md-input
@@ -79,7 +79,8 @@
       <md-dialog-title>
         <md-icon>settings_power</md-icon>Meeting Settings
       </md-dialog-title>
-      <div style="padding: 30px;">Set your meeting parameters here.
+      <div style="padding: 30px;">
+        Set your meeting parameters here.
         <md-field id="videoLink">
           <label>Video Conference Link</label>
           <md-input v-model="videoLink" required></md-input>
@@ -99,6 +100,10 @@
           <md-input v-model="moodDuration" required></md-input>
           <span class="md-helper-text">Enter duration in mins</span>
           <span class="md-error">Please enter a duration.</span>
+        </md-field>
+
+        <md-field id="activeTimer">
+          <md-checkbox v-model="activeTimer">Show Timer?</md-checkbox>
         </md-field>
 
         <md-dialog-actions>
@@ -127,14 +132,16 @@
         <md-icon>settings_power</md-icon>
         {{ mode }} Application
       </md-dialog-title>
-      <div style="padding: 20px;">Add your application here.
-        <br>
-        <br>
+      <div style="padding: 20px;">
+        Add your application here. <br />
+        <br />
 
         <md-field id="title">
           <label>Title</label>
           <md-input v-model="title" required></md-input>
-          <span class="md-helper-text">Enter the title of this application.</span>
+          <span class="md-helper-text"
+            >Enter the title of this application.</span
+          >
           <span class="md-error">This field cannot be blank.</span>
         </md-field>
         <md-field id="appLink">
@@ -149,7 +156,8 @@
             v-if="mode === 'update'"
             @click="onDeleteApplication();"
             style=" margin: 20px 10px -10px 0;"
-          >Delete</md-button>
+            >Delete</md-button
+          >
           <md-button
             class="md-success md-raised"
             @click="onConfirmApplication();"
@@ -179,9 +187,7 @@
         -->
         <!-- Show the title and navigation path here -->
         <!-- img src="https://diglife.com/brand/logo_primary.svg" / -->
-        <span class="md-title">
-          <md-icon>timelapse</md-icon>TALKTIME
-        </span>
+        <span class="md-title"> <md-icon>timelapse</md-icon>TALKTIME </span>
         <md-chip
           v-if="
             status === 'on air' ||
@@ -191,22 +197,31 @@
               status === 'ping pong'
           "
           style="background-color: #e64d3d !important;"
-        >{{ status }}</md-chip>
-        <md-chip v-else style="background-color: rgba(255, 255, 255, 0.5) !important;">{{ status }}</md-chip>
+          >{{ status }}</md-chip
+        >
+        <md-chip
+          v-else
+          style="background-color: rgba(255, 255, 255, 0.5) !important;"
+          >{{ status }}</md-chip
+        >
         <div style="position: absolute; right: 0px">
-          <img title="Remaining talk time" width="30" v-bind:src="battery_bar">
+          <img
+            title="Remaining talk time"
+            width="30"
+            v-bind:src="battery_bar"
+          />
           <img
             title="Topic signal strength"
             style="margin-left: -5px;"
             width="30"
             v-bind:src="signal_bar"
-          >
+          />
           <img
             title="Balanced talk time"
             style="margin-left: 3px;"
             width="30"
             v-bind:src="wifi_bar"
-          >
+          />
 
           <md-menu style="padding: 10px; cursor: pointer;">
             <md-icon md-menu-trigger>more_vert</md-icon>
@@ -285,18 +300,18 @@
           >
             <span
               style="position: absolute; right: 10px; margin-top: 2px;"
-              v-if="index === 0"
-            >{{ format(time) }}</span>
+              v-if="index === 0 && activeTimer"
+              >{{ format(time) }}</span
+            >
             <span
               style="position: absolute; right: 40px; margin-top: 3px; font-size: 0.8em"
-              v-else
-            >{{ format(person.talk_time) }}</span>
+              v-if="index > 0 && activeTimer"
+              >{{ format(person.talk_time) }}</span
+            >
             <md-icon>{{ icon[person.status.substring(2)] }}</md-icon>
             {{ person.name }}
             <md-icon v-if="person.mood !== 'mood_panic'">
-              {{
-              person.mood
-              }}
+              {{ person.mood }}
             </md-icon>
             <md-icon v-if="person.mood === 'mood_panic'">healing</md-icon>
             <md-menu
@@ -361,8 +376,8 @@
         <md-button
           @click="on_topic"
           :disabled="
-          this.attendees[0].name === username ||
-            status === 'not started' ||
+            this.attendees[0].name === username ||
+              status === 'not started' ||
               status === 'ended' ||
               status === 'ping pong'
           "
@@ -376,8 +391,8 @@
           v-touch:longtap="onLongPress"
           @mousedown="off_topic"
           :disabled="
-          this.attendees[0].name === username ||
-            status === 'not started' ||
+            this.attendees[0].name === username ||
+              status === 'not started' ||
               status === 'ended' ||
               status === 'ping pong'
           "
@@ -392,17 +407,24 @@
     <div id="theRoom" v-if="!activeApp" :class="[coherence]">
       <p v-if="videoLink">
         Click
-        <a style="color: #e5c62e" v-bind:href="videoLink" target="_target">Join Call</a>
+        <a style="color: #e5c62e" v-bind:href="videoLink" target="_target"
+          >Join Call</a
+        >
         to begin the conference.
       </p>
       <p v-if="!videoLink">
         Please
-        <a style="color: #e5c62e" href="#" @click.prevent="activeSetting = true;">set up</a>
+        <a
+          style="color: #e5c62e"
+          href="#"
+          @click.prevent="activeSetting = true;"
+          >set up</a
+        >
         the video conference link.
       </p>
     </div>
 
-    <div id="actions" v-if="!activeUser">
+    <div id="actions">
       <md-button
         id="0"
         title="Close App"
@@ -423,7 +445,11 @@
         <strong style="color: #fff; font-size: 1.4em">{{ index + 1 }}</strong>
       </md-button>
 
-      <md-button title="Add Menu Entry" @click="addApp" class="md-fab md-mini md-plain">
+      <md-button
+        title="Add Menu Entry"
+        @click="addApp"
+        class="md-fab md-mini md-plain"
+      >
         <md-icon>add</md-icon>
       </md-button>
     </div>
@@ -459,6 +485,7 @@ export default {
     activeApp: false,
     activeSetting: false,
     activeApplication: false,
+    activeTimer: false,
     title: "",
 
     power: false,
@@ -564,6 +591,8 @@ export default {
         this.status = data;
       } else if (key === "coherence") {
         this.coherence = data;
+      } else if (key === "activeTimer") {
+        this.activeTimer = data;
       } else if (key === "selectedApp") {
         this.$nextTick(function() {
           var element = document.getElementById(data);
@@ -605,6 +634,8 @@ export default {
         this.status = data;
       } else if (key === "coherence") {
         this.coherence = data;
+      } else if (key === "activeTimer") {
+        this.activeTimer = data;
       } else if (key === "videoLink") {
         this.videoLink = data;
       } else if (key === "selectedApp") {
@@ -1134,7 +1165,8 @@ export default {
         this.parametersRef.update({
           meetingDuration: this.meetingDuration,
           moodDuration: this.moodDuration,
-          videoLink: this.videoLink
+          videoLink: this.videoLink,
+          activeTimer: this.activeTimer
         });
       }
     },
@@ -1458,6 +1490,11 @@ export default {
     // FUNCTION APPOINT
     ///////////////////////////////////////////////////////////////////
     appoint: function(person) {
+      if (this.attendees[0].status.substring(2) === "talking") {
+        this.attendeesRef
+          .child(this.attendees[0].name)
+          .update({ status: "7 completing" });
+      }
       this.attendeesRef.child(person.name).update({ status: "1 talking" });
       this.snack = "You have appointed " + person.name + ".";
       this.showSnackBar = true;
@@ -1529,16 +1566,12 @@ export default {
         this.activeApp = false;
       } else {
         this.activeApp = true;
-        if (window.screen.width < 1080) {
-          window.open(app.appLink, "_none");
-        } else {
-          this.$nextTick(function() {
-            var element = document.getElementById("theApp");
-            element.src = "about:blank";
-            element.style.display = "block";
-            window.open(app.appLink, "theApp");
-          });
-        }
+        this.$nextTick(function() {
+          var element = document.getElementById("theApp");
+          element.src = "about:blank";
+          element.style.display = "block";
+          window.open(app.appLink, "theApp");
+        });
       }
       this.parametersRef.update({ selectedApp: index + 1 });
     },
@@ -1678,7 +1711,9 @@ export default {
   #theRoom {
     display: none !important;
   }
-
+  #actions {
+    display: none !important;
+  }
   #app {
     width: 100% !important;
   }
@@ -1811,6 +1846,11 @@ span.md-title {
   margin: 30px -30px 0 0 !important;
 }
 
+.md-checkbox-label {
+  margin: -22px 5px !important;
+  padding: 0px !important;
+}
+
 .md-card-menu .md-list-item-content {
   min-height: 20px !important;
   padding: 5px;
@@ -1936,7 +1976,7 @@ span.md-title {
 #actions {
   position: absolute;
   margin: auto;
-  bottom: 80px;
+  bottom: 40%;
   z-index: 99;
   width: 45px;
   right: 20px;
