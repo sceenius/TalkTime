@@ -175,7 +175,7 @@
           TOOLBAR - https://vuematerial.io/components/toolbar/
         ----------------------------------------------------------------------
       -->
-      <md-toolbar :class="['md-primary', coherence,'animated','bounceInDown']">
+      <md-toolbar :class="['md-primary', coherence,'animated','bounceInDown','delay-1s']">
         <!--
           md-button class="md-icon-button" @click="showNavigation = true;">
             <md-icon>menu</md-icon> 
@@ -332,7 +332,7 @@
 
       <div class="bottom-bar">
         <md-button
-          v-bind:class="['bar-button', coherence,'animated','bounceInUp']"
+          v-bind:class="['bar-button', coherence,'animated','bounceInUp','delay-1s']"
           v-long-press="interject"
           v-touch:longtap="interject"
           @mousedown="raise_hand"
@@ -355,7 +355,7 @@
               status === 'random' ||
               videoLink === ''
           "
-          v-bind:class="['bar-button', coherence,'animated','bounceInUp']"
+          v-bind:class="['bar-button', coherence,'animated','bounceInUp','delay-1s']"
         >
           <md-icon>videocam</md-icon>
           <div>JOIN CALL</div>
@@ -368,7 +368,7 @@
               status === 'ended' ||
               status === 'ping pong'
           "
-          v-bind:class="['bar-button', coherence,'animated','bounceInUp']"
+          v-bind:class="['bar-button', coherence,'animated','bounceInUp','delay-1s']"
         >
           <md-icon>mood</md-icon>
           <div>ON TOPIC</div>
@@ -383,7 +383,7 @@
               status === 'ended' ||
               status === 'ping pong'
           "
-          v-bind:class="['bar-button', coherence,'animated','bounceInUp']"
+          v-bind:class="['bar-button', coherence,'animated','bounceInUp','delay-1s']"
         >
           <md-icon>mood_bad</md-icon>
           <md-icon class="longpress">warning</md-icon>
@@ -409,7 +409,7 @@
         id="0"
         title="Close App"
         @click="openApp(null, -1);"
-        class="md-fab md-mini md-plain animated bounceInRight"
+        class="md-fab md-mini md-plain animated bounceInRight delay-2s"
       >
         <strong style="color: #fff; font-size: 1.4em">0</strong>
       </md-button>
@@ -420,7 +420,7 @@
         @contextmenu.prevent="updateApp(link, index);"
         v-bind:title="link.title"
         v-bind:id="index + 1"
-        class="md-fab md-mini md-plain animated bounceInRight"
+        class="md-fab md-mini md-plain animated bounceInRight delay-2s"
       >
         <strong style="color: #fff; font-size: 1.4em">{{ index + 1 }}</strong>
       </md-button>
@@ -428,7 +428,7 @@
       <md-button
         title="Add Menu Entry"
         @click="addApp"
-        class="md-fab md-mini md-plain animated bounceInRight"
+        class="md-fab md-mini md-plain animated bounceInRight delay-2s"
       >
         <md-icon>add</md-icon>
       </md-button>
