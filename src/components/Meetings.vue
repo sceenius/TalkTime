@@ -1423,7 +1423,7 @@ export default {
       if (this.attendees[0].name !== this.username) {
         this.attendees.forEach(person => {
           //console.log(person);
-          if (person.name === this.username) {
+          if (person.name === this.username && person.status !== "2 interjecting") {
             this.attendeesRef.child(person.name).update({
               status: "2 interjecting",
               joined_at: new Date().getTime()
