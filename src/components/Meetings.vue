@@ -312,6 +312,10 @@
                   <md-icon>cancel</md-icon>
                   <span>Lower Hand</span>
                 </md-menu-item>
+                <md-menu-item @click="raise_hand(person);">
+                  <md-icon>pan_tool</md-icon>
+                  <span>Raise Hand</span>
+                </md-menu-item>
                 <md-menu-item @click="end_distress(person);">
                   <md-icon>healing</md-icon>
                   <span>End Distress</span>
@@ -1390,11 +1394,17 @@ export default {
     ///////////////////////////////////////////////////////////////////
     // FUNCTION RAISE HAND
     ///////////////////////////////////////////////////////////////////
-    raise_hand: function() {
-      if (this.attendees[0].name !== this.username) {
+    raise_hand: function(person) {
+
+      // you can only click once to freeze the time
+      if (person.name && person.status !== "3 waiting") {
+        this.attendeesRef
+          .child(person.name)
+          .update({ status: "3 waiting", joined_at: new Date().getTime() });
+      } else if (this.attendees[0].name !== this.username) {
         this.attendees.forEach(person => {
           //console.log(person);
-          if (person.name === this.username) {
+          if (person.name === this.username && person.status !== "3 waiting") {
             this.attendeesRef
               .child(person.name)
               .update({ status: "3 waiting", joined_at: new Date().getTime() });
