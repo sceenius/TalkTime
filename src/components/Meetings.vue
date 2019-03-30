@@ -225,37 +225,37 @@
                 <span>Start Meeting</span>
               </md-menu-item>
 
-              <md-menu-item @click="end_meeting();">
+              <md-menu-item :disabled="status === 'not started'" @click="end_meeting();">
                 <md-icon>power_settings_new</md-icon>
-                <span>End Meeting</span>
+                <span>Reset Meeting</span>
               </md-menu-item>
 
-              <md-menu-item @click="activeSetting = true;">
+              <md-menu-item :disabled="status === 'not started'" @click="activeSetting = true;">
                 <md-icon>settings_power</md-icon>
                 <span>Settings</span>
               </md-menu-item>
 
-              <md-menu-item @click="check_in();">
+              <md-menu-item :disabled="status === 'not started'" @click="check_in();">
                 <md-icon>update</md-icon>
                 <span>Check-in</span>
               </md-menu-item>
 
-              <md-menu-item @click="check_out();">
+              <md-menu-item :disabled="status === 'not started'" @click="check_out();">
                 <md-icon>update</md-icon>
                 <span>Check-out</span>
               </md-menu-item>
 
-              <md-menu-item @click="ping_pong();">
+              <md-menu-item :disabled="status === 'not started'" @click="ping_pong();">
                 <md-icon>update</md-icon>
                 <span>Ping Pong</span>
               </md-menu-item>
 
-              <md-menu-item @click="random_round();">
+              <md-menu-item :disabled="status === 'not started'" @click="random_round();">
                 <md-icon>update</md-icon>
                 <span>Random Round</span>
               </md-menu-item>
 
-              <md-menu-item @click="clear_out();">
+              <md-menu-item :disabled="status === 'not started'" @click="clear_out();">
                 <md-icon>check_box_outline_blank</md-icon>
                 <span>Clear Out</span>
               </md-menu-item>
@@ -1363,9 +1363,9 @@ export default {
     // FUNCTION END MEETING
     ///////////////////////////////////////////////////////////////////
     end_meeting: function() {
-      this.parametersRef.update({ status: "ended" });
+      this.parametersRef.update({ status: "not started" });
       this.attendeesRef.remove();
-      this.snack = "This meeting has ended.";
+      this.snack = "This meeting has been reset.";
       this.showSnackBar = true;
     },
 
@@ -1395,7 +1395,6 @@ export default {
     // FUNCTION RAISE HAND
     ///////////////////////////////////////////////////////////////////
     raise_hand: function(person) {
-
       // you can only click once to freeze the time
       if (person.name && person.status !== "3 waiting") {
         this.attendeesRef
@@ -1423,7 +1422,10 @@ export default {
       if (this.attendees[0].name !== this.username) {
         this.attendees.forEach(person => {
           //console.log(person);
-          if (person.name === this.username && person.status !== "2 interjecting") {
+          if (
+            person.name === this.username &&
+            person.status !== "2 interjecting"
+          ) {
             this.attendeesRef.child(person.name).update({
               status: "2 interjecting",
               joined_at: new Date().getTime()
