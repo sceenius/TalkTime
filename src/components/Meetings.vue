@@ -225,12 +225,12 @@
                 <span>Start Meeting</span>
               </md-menu-item>
 
-              <md-menu-item :disabled="status === 'not started'" @click="end_meeting();">
+              <md-menu-item @click="end_meeting();">
                 <md-icon>power_settings_new</md-icon>
                 <span>Reset Meeting</span>
               </md-menu-item>
 
-              <md-menu-item :disabled="status === 'not started'" @click="activeSetting = true;">
+              <md-menu-item @click="activeSetting = true;">
                 <md-icon>settings_power</md-icon>
                 <span>Settings</span>
               </md-menu-item>
