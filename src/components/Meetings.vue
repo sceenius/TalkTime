@@ -15,7 +15,7 @@
       <md-button class="md-primary" @click="showSnackBar = false;">Dismiss</md-button>
     </md-snackbar>
 
-    <md-snackbar :md-duration="3500" :md-active.sync="showHostBar" md-persistent md-position="left">
+    <md-snackbar :md-duration="5500" :md-active.sync="showHostBar" md-persistent md-position="left">
       <span>Want to claim host?</span>
       <md-button class="md-primary" @click="claim_host()">YES</md-button>
       <md-button class="md-primary" @click="showHostBar = false;">NO</md-button>
@@ -224,49 +224,64 @@
 
             <md-menu-content
               class="md-card-menu"
-              style="height: 325px !important; min-height: 325px !important;"
+              style="height: 357px !important; min-height: 357px !important;"
             >
-              <md-menu-item @click="claim_host();">
+              <md-menu-item :disabled="host == username" @click="claim_host();">
                 <md-icon>person</md-icon>
                 <span>Claim Host</span>
               </md-menu-item>
 
-              <md-menu-item @click="start_meeting();">
+              <md-menu-item :disabled="host !== username" @click="start_meeting();">
                 <md-icon>power_settings_new</md-icon>
                 <span>Start Meeting</span>
               </md-menu-item>
 
-              <md-menu-item @click="end_meeting();">
+              <md-menu-item :disabled="host !== username" @click="end_meeting();">
                 <md-icon>power_settings_new</md-icon>
                 <span>Reset Meeting</span>
               </md-menu-item>
 
-              <md-menu-item @click="activeSetting = true;">
+              <md-menu-item :disabled="host !== username" @click="activeSetting = true;">
                 <md-icon>settings_power</md-icon>
                 <span>Settings</span>
               </md-menu-item>
 
-              <md-menu-item :disabled="status === 'not started'" @click="check_in();">
+              <md-menu-item
+                :disabled="status === 'not started' || host !== username"
+                @click="check_in();"
+              >
                 <md-icon>update</md-icon>
                 <span>Check-in</span>
               </md-menu-item>
 
-              <md-menu-item :disabled="status === 'not started'" @click="check_out();">
+              <md-menu-item
+                :disabled="status === 'not started' || host !== username"
+                @click="check_out();"
+              >
                 <md-icon>update</md-icon>
                 <span>Check-out</span>
               </md-menu-item>
 
-              <md-menu-item :disabled="status === 'not started'" @click="ping_pong();">
+              <md-menu-item
+                :disabled="status === 'not started' || host !== username"
+                @click="ping_pong();"
+              >
                 <md-icon>update</md-icon>
                 <span>Ping Pong</span>
               </md-menu-item>
 
-              <md-menu-item :disabled="status === 'not started'" @click="random_round();">
+              <md-menu-item
+                :disabled="status === 'not started' || host !== username"
+                @click="random_round();"
+              >
                 <md-icon>update</md-icon>
                 <span>Random Round</span>
               </md-menu-item>
 
-              <md-menu-item :disabled="status === 'not started'" @click="clear_out();">
+              <md-menu-item
+                :disabled="status === 'not started' || host !== username"
+                @click="clear_out();"
+              >
                 <md-icon>check_box_outline_blank</md-icon>
                 <span>Clear Out</span>
               </md-menu-item>
@@ -419,11 +434,11 @@
       </p>
     </div>
 
-    <div id="actions" v-if="!activeUser">
+    <div id="actions" v-if="!activeUser && host == username">
       <md-button
         id="0"
         title="Close App"
-        @click="openApp(null, -1);"
+        @click="sendApp(null, -1);"
         class="md-fab md-mini md-plain animated bounceInRight delay-2s"
       >
         <strong style="color: #fff; font-size: 1.4em">0</strong>
@@ -431,7 +446,7 @@
       <md-button
         v-for="(link, index) in appLinks"
         :key="index"
-        @click="openApp(link, index);"
+        @click="sendApp(link, index);"
         @contextmenu.prevent="updateApp(link, index);"
         v-bind:title="link.title"
         v-bind:id="index + 1"
@@ -590,13 +605,30 @@ export default {
         this.coherence = data;
       } else if (key === "host") {
         this.host = data;
-        this.snack = data + " is the meeting host.";
+        this.snack = data + " is now host.";
         this.showSnackBar = true;
+        this.showHostBar = false;
       } else if (key === "activeTimer") {
         this.activeTimer = data;
-      } else if (key === "selectedApp") {
+      } else if (key === "screen") {
         this.$nextTick(function() {
-          var element = document.getElementById(data);
+          if (data + 1 === 0) {
+            this.activeApp = false;
+          } else {
+            this.activeApp = true;
+            if (window.screen.width < 1080) {
+              window.open(this.appLinks[data].appLink, "_none");
+            } else {
+              this.$nextTick(function() {
+                var element = document.getElementById("theApp");
+                element.src = "about:blank";
+                element.style.display = "block";
+                window.open(this.appLinks[data].appLink, "theApp");
+              });
+            }
+          }
+
+          var element = document.getElementById(data.toString());
           element.style.backgroundColor = "#41b883 !important";
         });
       } else if (key === "appLinks") {
@@ -637,16 +669,33 @@ export default {
         this.coherence = data;
       } else if (key === "host") {
         this.host = data;
-        this.snack = data + " is the meeting host.";
+        this.snack = data + " is now host.";
         this.showSnackBar = true;
+        this.showHostBar = false;
       } else if (key === "activeTimer") {
         this.activeTimer = data;
       } else if (key === "videoLink") {
         this.videoLink = data;
-      } else if (key === "selectedApp") {
+      } else if (key === "screen") {
+        if (data + 1 === 0) {
+          this.activeApp = false;
+        } else {
+          this.activeApp = true;
+          if (window.screen.width < 1080) {
+            window.open(this.appLinks[data].appLink, "_none");
+          } else {
+            this.$nextTick(function() {
+              var element = document.getElementById("theApp");
+              element.src = "about:blank";
+              element.style.display = "block";
+              window.open(this.appLinks[data].appLink, "theApp");
+            });
+          }
+        }
+
         for (var i = 0; i < this.appLinks.length + 1; i++) {
-          var element = document.getElementById(data);
-          if (i === data) {
+          var element = document.getElementById(data.toString());
+          if (i == data) {
             element.style.backgroundColor = "#41b883 !important";
           } else {
             element.style.backgroundColor = "#e5c62e !important";
@@ -1583,6 +1632,13 @@ export default {
     },
 
     ///////////////////////////////////////////////////////////////////
+    // FUNCTION SEND APP
+    ///////////////////////////////////////////////////////////////////
+    sendApp: function(app, index) {
+      this.parametersRef.update({ screen: index });
+    },
+
+    ///////////////////////////////////////////////////////////////////
     // FUNCTION OPEN APP
     ///////////////////////////////////////////////////////////////////
     openApp: function(app, index) {
@@ -1600,7 +1656,6 @@ export default {
           });
         }
       }
-      this.parametersRef.update({ selectedApp: index + 1 });
     },
 
     ///////////////////////////////////////////////////////////////////
