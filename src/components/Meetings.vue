@@ -15,6 +15,12 @@
       <md-button class="md-primary" @click="showSnackBar = false;">Dismiss</md-button>
     </md-snackbar>
 
+    <md-snackbar :md-duration="3500" :md-active.sync="showHostBar" md-persistent md-position="left">
+      <span>Want to claim host?</span>
+      <md-button class="md-primary" @click="claim_host()">YES</md-button>
+      <md-button class="md-primary" @click="showHostBar = false;">NO</md-button>
+    </md-snackbar>
+
     <!--
       ----------------------------------------------------------------------
         DIALOG BOXES  - https://vuematerial.io/components/dialog
@@ -220,6 +226,11 @@
               class="md-card-menu"
               style="height: 325px !important; min-height: 325px !important;"
             >
+              <md-menu-item @click="claim_host();">
+                <md-icon>person</md-icon>
+                <span>Claim Host</span>
+              </md-menu-item>
+
               <md-menu-item @click="start_meeting();">
                 <md-icon>power_settings_new</md-icon>
                 <span>Start Meeting</span>
@@ -465,6 +476,7 @@ export default {
     showSidepanel: false,
     showServices: false,
     showSnackBar: false,
+    showHostBar: false,
     activeUser: false,
     activeApp: false,
     activeSetting: false,
@@ -475,6 +487,7 @@ export default {
     power: false,
     snack: "",
     status: "not started",
+    host: "",
     coherence: "green",
     variation: 0,
     topic: "",
@@ -575,6 +588,10 @@ export default {
         this.status = data;
       } else if (key === "coherence") {
         this.coherence = data;
+      } else if (key === "host") {
+        this.host = data;
+        this.snack = data + " is the meeting host.";
+        this.showSnackBar = true;
       } else if (key === "activeTimer") {
         this.activeTimer = data;
       } else if (key === "selectedApp") {
@@ -618,6 +635,10 @@ export default {
         this.status = data;
       } else if (key === "coherence") {
         this.coherence = data;
+      } else if (key === "host") {
+        this.host = data;
+        this.snack = data + " is the meeting host.";
+        this.showSnackBar = true;
       } else if (key === "activeTimer") {
         this.activeTimer = data;
       } else if (key === "videoLink") {
@@ -929,6 +950,9 @@ export default {
   ///////////////////////////////////////////////////////////////////
   mounted: function() {
     document.title = "TalkTime";
+    if (this.host == "") {
+      this.showHostBar = true;
+    }
 
     if (this.$cookies.get("username")) {
       this.username = this.$cookies.get("username");
@@ -1348,6 +1372,14 @@ export default {
 
       this.snack = "All attendees cleared.";
       this.showSnackBar = true;
+    },
+
+    ///////////////////////////////////////////////////////////////////
+    // FUNCTION CLAIM HOST
+    ///////////////////////////////////////////////////////////////////
+    claim_host: function() {
+      this.showHostBar = false;
+      this.parametersRef.update({ host: this.username });
     },
 
     ///////////////////////////////////////////////////////////////////
