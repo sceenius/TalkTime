@@ -93,6 +93,13 @@
           <span class="md-error">Please enter a link.</span>
         </md-field>
 
+        <md-field id="startTime">
+          <label>Start Time</label>
+          <md-input v-model="startTime" required></md-input>
+          <span class="md-helper-text">Enter start time as YYYY-MM-DD HH:MM:SS</span>
+          <span class="md-error">Please enter a start time.</span>
+        </md-field>
+
         <md-field id="meetingDuration">
           <label>Meeting Duration</label>
           <md-input v-model="meetingDuration" required></md-input>
@@ -422,11 +429,9 @@
       </div>
     </div>
     <div id="theRoom" v-if="!activeApp" :class="[coherence]">
-      <p v-if="videoLink">
-        Click
-        <a style="color: #e5c62e" v-bind:href="videoLink" target="_target">Join Call</a>
-        to begin the conference.
-      </p>
+      <flip-countdown v-if="startTime" v-bind:deadline="startTime"></flip-countdown>
+      <div v-if="videoLink && timeDiff < 0" class="large" @click="join_call()">JOIN CALL</div>
+
       <p v-if="!videoLink">
         Please
         <a style="color: #e5c62e" href="#" @click.prevent="activeSetting = true;">set up</a>
@@ -480,7 +485,10 @@
 <script>
 import Moment from "moment";
 import db from "../firebase/init.js";
+import FlipCountdown from "vue2-flip-countdown";
+
 export default {
+  components: { FlipCountdown },
   name: "Meetings",
   props: { msg: String },
   data: () => ({
@@ -508,6 +516,8 @@ export default {
     topic: "",
     time: 0,
     timer: null,
+    startTime: null,
+    timeDiff: null,
     failed: false,
     username: "",
     domain: "diglife",
@@ -610,6 +620,8 @@ export default {
         this.showHostBar = false;
       } else if (key === "activeTimer") {
         this.activeTimer = data;
+      } else if (key === "startTime") {
+        this.startTime = data;
       } else if (key === "screen") {
         this.$nextTick(function() {
           if (data + 1 === 0) {
@@ -629,7 +641,9 @@ export default {
           }
 
           var element = document.getElementById(data.toString());
-          element.style.backgroundColor = "#41b883 !important";
+          if (element) {
+            element.style.backgroundColor = "#41b883 !important";
+          }
         });
       } else if (key === "appLinks") {
         this.activeApp = true;
@@ -674,6 +688,8 @@ export default {
         this.showHostBar = false;
       } else if (key === "activeTimer") {
         this.activeTimer = data;
+      } else if (key === "startTime") {
+        this.startTime = data;
       } else if (key === "videoLink") {
         this.videoLink = data;
       } else if (key === "screen") {
@@ -695,7 +711,7 @@ export default {
 
         for (var i = 0; i < this.appLinks.length + 1; i++) {
           var element = document.getElementById(data.toString());
-          if (i == data) {
+          if (element && i === data) {
             element.style.backgroundColor = "#41b883 !important";
           } else {
             element.style.backgroundColor = "#e5c62e !important";
@@ -723,6 +739,13 @@ export default {
           window.open(data, "theApp");
         });
       }
+    });
+
+    this.$nextTick(function() {
+      var element = document.getElementById("theApp");
+      element.src = "about:blank";
+      element.style.display = "block";
+      window.open(this.appLinks[0].appLink, "theApp");
     });
 
     ///////////////////////////////////////////////////////////////////
@@ -992,6 +1015,11 @@ export default {
         });
       }
     }); //child_changed
+
+    // trick to re-compute timeDiff
+    setInterval(() => {
+      this.timeDiff = Date.parse(this.startTime) - Date.parse(new Date());
+    }, 1000);
   },
 
   ///////////////////////////////////////////////////////////////////
@@ -1036,6 +1064,21 @@ export default {
     }
   },
 
+  ///////////////////////////////////////////////////////////////////
+  // VUE ASYNC COMPUTED
+  ///////////////////////////////////////////////////////////////////
+  asyncComputed: {
+    // This is how to compute promised values in an async way!
+    // startTime() {
+    //   return db
+    //     .database()
+    //     .ref("meetings/" + this.domain + "/parameters/startTime")
+    //     .once("value")
+    //     .then(snapshot => {
+    //       return snapshot.val() || "";
+    //     });
+    // }
+  },
   ///////////////////////////////////////////////////////////////////
   // VUE COMPUTED
   ///////////////////////////////////////////////////////////////////
@@ -1223,7 +1266,8 @@ export default {
           meetingDuration: this.meetingDuration,
           moodDuration: this.moodDuration,
           videoLink: this.videoLink,
-          activeTimer: this.activeTimer
+          activeTimer: this.activeTimer,
+          startTime: this.startTime
         });
       }
     },
@@ -2107,5 +2151,20 @@ span.md-title {
 
 li {
   transition: all 0.5s ease-out;
+}
+
+.large {
+  background-color: #FFDC00;
+  border: none;
+  color: black !important;
+  font-size: 28px !important;
+  font-weight: bold;
+  padding: 0px 40px 0px 40px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  margin: 4px 2px;
+  border-radius: 30px;
+  cursor: pointer;
 }
 </style>

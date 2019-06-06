@@ -11,10 +11,12 @@
     "firebase": "5.8.4",
     "moment": "2.24.0",
     "vue": "^2.5.22",
+    "vue-async-computed": "3.7.0",
     "vue-cookies": "1.5.12",
     "vue-long-press-directive": "1.0.2",
     "vue-material": "1.0.0-beta-10.2",
     "vue-router": "3.0.2",
+    "vue2-flip-countdown": "0.6.0",
     "vue2-touch-events": "1.1.2"
   },
   "devDependencies": {
