@@ -94,9 +94,9 @@
         </md-field>
 
         <md-field id="startTime">
-          <label>Start Time</label>
+          <label>Start Time in {{timeZone}}</label>
           <md-input v-model="startTime" required></md-input>
-          <span class="md-helper-text">Enter start time as YYYY-MM-DD HH:MM:SS</span>
+          <span class="md-helper-text">Enter time as YYYY-MM-DD HH:MM:SS</span>
           <span class="md-error">Please enter a start time.</span>
         </md-field>
 
@@ -332,6 +332,7 @@
             >{{ format(person.talk_time) }}</span>
             <md-icon>{{ icon[person.status.substring(2)] }}</md-icon>
             {{ person.name }}
+            <span v-if="host === person.name">(host)</span>
             <md-icon v-if="person.mood !== 'mood_panic'">{{ person.mood }}</md-icon>
             <md-icon v-if="person.mood === 'mood_panic'">healing</md-icon>
             <md-menu
@@ -431,7 +432,6 @@
     <div id="theRoom" v-if="!activeApp" :class="[coherence]">
       <flip-countdown v-if="startTime" v-bind:deadline="startTime"></flip-countdown>
       <div v-if="videoLink && timeDiff < 0" class="large" @click="join_call()">JOIN CALL</div>
-
       <p v-if="!videoLink">
         Please
         <a style="color: #e5c62e" href="#" @click.prevent="activeSetting = true;">set up</a>
@@ -486,6 +486,7 @@
 import Moment from "moment";
 import db from "../firebase/init.js";
 import FlipCountdown from "vue2-flip-countdown";
+import Timezone from "moment-timezone";
 
 export default {
   components: { FlipCountdown },
@@ -517,6 +518,7 @@ export default {
     time: 0,
     timer: null,
     startTime: null,
+    timeZone: Timezone.tz.guess(),
     timeDiff: null,
     failed: false,
     username: "",
@@ -621,7 +623,9 @@ export default {
       } else if (key === "activeTimer") {
         this.activeTimer = data;
       } else if (key === "startTime") {
-        this.startTime = data;
+        this.startTime = Timezone.tz(data.time, data.zone)
+          .local()
+          .format("YYYY-MM-DD HH:mm:ss");
       } else if (key === "screen") {
         this.$nextTick(function() {
           if (data + 1 === 0) {
@@ -1017,8 +1021,14 @@ export default {
     }); //child_changed
 
     // trick to re-compute timeDiff
-    setInterval(() => {
+    var myTimer = setInterval(() => {
       this.timeDiff = Date.parse(this.startTime) - Date.parse(new Date());
+      if (this.timeDiff < 0) {
+        clearInterval(myTimer);
+        this.parametersRef.update({ status: "on air" });
+        this.snack = "This meeting has started.";
+        this.showSnackBar = true;
+      }
     }, 1000);
   },
 
@@ -1267,7 +1277,7 @@ export default {
           moodDuration: this.moodDuration,
           videoLink: this.videoLink,
           activeTimer: this.activeTimer,
-          startTime: this.startTime
+          startTime: { time: this.startTime, zone: this.timeZone }
         });
       }
     },
